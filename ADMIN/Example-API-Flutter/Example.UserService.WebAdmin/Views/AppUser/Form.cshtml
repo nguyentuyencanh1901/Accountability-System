@@ -1,0 +1,136 @@
+@model Example.UserService.WebAdmin.Models.AppUser.AppUserFormViewModel
+@using Example.Common.Enums
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") người dùng</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="IsSuperAdmin" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">@Model.ErrorMessage</div>
+            }
+            @if (Model.IsSuperAdminRestrictedEdit)
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-shield-alt"></i> Tài khoản <strong>SUPER_ADMIN</strong> — có thể sửa <strong>Họ tên, Email, Số điện thoại, Mật khẩu</strong>.
+                    Không thể đổi tên đăng nhập, loại tài khoản, trạng thái hoặc vai trò.
+                </div>
+            }
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Username"></label>
+                        <input asp-for="Username" class="form-control" readonly="@Model.IsSuperAdminRestrictedEdit" />
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+                </div>
+                @if (Model.IsSuperAdminRestrictedEdit)
+                {
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Password"></label>
+                            <input asp-for="Password" class="form-control" />
+                            <small class="text-muted">Nhập mật khẩu mới khi cần đổi.</small>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                    </div>
+                }
+                @if (!Model.IsSuperAdminRestrictedEdit)
+                {
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Password"></label>
+                            <input asp-for="Password" class="form-control" />
+                            @if (Model.IsEdit)
+                            {
+                                <small class="text-muted">Nhập mật khẩu mới khi cần đổi.</small>
+                            }
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                    </div>
+                }
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" class="form-control" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Phone"></label>
+                        <input asp-for="Phone" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="UserType"></label>
+                        <select asp-for="UserType" asp-items="Model.UserTypeOptions" class="form-control" id="userType" disabled="@Model.IsSuperAdminRestrictedEdit"></select>
+                        @if (Model.IsSuperAdminRestrictedEdit)
+                        {
+                            <input type="hidden" asp-for="UserType" />
+                        }
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="Status"></label>
+                        <select asp-for="Status" asp-items="Model.StatusOptions" class="form-control" disabled="@Model.IsSuperAdminRestrictedEdit"></select>
+                        @if (Model.IsSuperAdminRestrictedEdit)
+                        {
+                            <input type="hidden" asp-for="Status" />
+                        }
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+                @if (!Model.IsSuperAdminRestrictedEdit)
+                {
+                    <div class="col-md-12" id="rolesGroup">
+                        <div class="form-group">
+                            <label asp-for="Roles"></label>
+                            <select asp-for="Roles" asp-items="Model.RoleOptions" class="form-control" multiple size="4"></select>
+                            <small class="text-muted">Chỉ áp dụng cho người quản lý.</small>
+                        </div>
+                    </div>
+                }
+                else if (Model.Roles?.Count > 0)
+                {
+                    @foreach (var roleId in Model.Roles)
+                    {
+                        <input type="hidden" name="Roles" value="@roleId" />
+                    }
+                }
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @if (!Model.IsSuperAdminRestrictedEdit)
+    {
+        <script>
+            (function () {
+                var userType = document.getElementById('userType');
+                var rolesGroup = document.getElementById('rolesGroup');
+                var manager = '@((int)UserTypeEnum.Manager)';
+                function toggle() { rolesGroup.style.display = userType.value === manager ? 'block' : 'none'; }
+                userType.addEventListener('change', toggle);
+                toggle();
+            })();
+        </script>
+    }
+}

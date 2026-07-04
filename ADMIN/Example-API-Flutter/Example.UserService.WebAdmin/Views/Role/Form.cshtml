@@ -1,0 +1,82 @@
+@model Example.UserService.WebAdmin.Models.Role.RoleFormViewModel
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") vai trò</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <div class="form-group">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Permissions"></label>
+                <span class="text-muted small ml-2">
+                    Đã chọn: <strong id="permission-selected-count">0</strong> / <span id="permission-total-count">@Model.PermissionOptions.Count</span>
+                </span>
+                <div class="mb-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btn-select-all-perms">
+                        <i class="fas fa-check-double"></i> Chọn tất cả
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-clear-all-perms">
+                        <i class="fas fa-times"></i> Bỏ chọn tất cả
+                    </button>
+                </div>
+                <div class="border rounded p-2 bg-white" style="max-height: 320px; overflow-y: auto;" id="permission-list">
+                    @if (Model.PermissionOptions.Count == 0)
+                    {
+                        <p class="text-muted mb-0 small">Chưa có quyền hạn nào trong hệ thống.</p>
+                    }
+                    @foreach (var opt in Model.PermissionOptions)
+                    {
+                        <label class="d-flex align-items-center mb-2 permission-item" style="cursor: pointer; gap:10px;">
+                            <input type="checkbox"
+                                   class="permission-checkbox"
+                                   name="Permissions"
+                                   value="@opt.Value"
+                                   @(opt.Selected ? "checked" : "") />
+                            <span>@opt.Text</span>
+                        </label>
+                    }
+                </div>
+                <small class="form-text text-muted">Bấm từng dòng để chọn/bỏ chọn — không cần giữ Ctrl.</small>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const checkboxes = document.querySelectorAll('.permission-checkbox');
+            const selectedCountEl = document.getElementById('permission-selected-count');
+
+            function updateSelectedCount() {
+                const count = Array.from(checkboxes).filter(function (cb) { return cb.checked; }).length;
+                if (selectedCountEl) selectedCountEl.textContent = count;
+            }
+
+            checkboxes.forEach(function (cb) {
+                cb.addEventListener('change', updateSelectedCount);
+            });
+
+            document.getElementById('btn-select-all-perms')?.addEventListener('click', function () {
+                checkboxes.forEach(function (cb) { cb.checked = true; });
+                updateSelectedCount();
+            });
+            document.getElementById('btn-clear-all-perms')?.addEventListener('click', function () {
+                checkboxes.forEach(function (cb) { cb.checked = false; });
+                updateSelectedCount();
+            });
+
+            updateSelectedCount();
+        })();
+    </script>
+}

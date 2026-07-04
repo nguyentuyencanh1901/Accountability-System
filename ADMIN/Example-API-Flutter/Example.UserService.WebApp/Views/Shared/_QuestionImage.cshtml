@@ -1,0 +1,21 @@
+@model Example.UserService.WebApp.Models.ExamSession.QuestionImagePartialModel
+@using Example.Common.Utilities.Helper
+@{
+    var src = EntityImageHelper.BuildPublicUrl(Model.RelativeImageUrl, Model.ApiBaseUrl);
+}
+@if (!string.IsNullOrWhiteSpace(src))
+{
+    <div class="question-image-wrap question-image-wrap--@Model.Variant">
+        <button type="button"
+                class="question-image-trigger js-question-image-open"
+                data-image-src="@src"
+                data-image-alt="@Model.AltText"
+                aria-label="Phóng to @Model.AltText">
+            <img src="@src" alt="@Model.AltText" class="question-image" loading="lazy" />
+            <span class="question-image-overlay">
+                <i class="fas fa-search-plus"></i>
+                <span class="question-image-overlay-text">Xem ảnh</span>
+            </span>
+        </button>
+    </div>
+}

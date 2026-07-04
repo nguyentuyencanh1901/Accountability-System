@@ -1,0 +1,502 @@
+@model Example.UserService.WebApp.Models.ExamSession.TakeExamViewModel
+@using Example.UserService.WebApp.Models.ExamSession
+@{
+    var session = Model.Session!;
+    var questions = session.Questions ?? new List<ExamSessionQuestionModel>();
+    var totalQuestions = questions.Count;
+    var firstUnansweredIndex = 0;
+    for (var idx = 0; idx < questions.Count; idx++)
+    {
+        var selected = questions[idx].SelectedAnswerOptionIds ?? new List<long>();
+        if (selected.Count == 0)
+        {
+            firstUnansweredIndex = idx;
+            break;
+        }
+        if (idx == questions.Count - 1)
+        {
+            firstUnansweredIndex = idx;
+        }
+    }
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+<div class="alert alert-warning border-0 mb-3">
+    <i class="fas fa-shield-alt me-2"></i>
+    <strong>Quy chế thi:</strong> Không chuyển tab, không rời màn hình khi đang làm bài.
+    Vi phạm quá <strong>5 lần</strong> sẽ bị <strong>hủy bài</strong> và không được thi lại.
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="mb-1">@session.ExamSetName</h4>
+                <span class="text-muted">@(session.ExamType == (int)ExamTypeEnum.Trial ? "Thi thử" : "Thi thật") — @totalQuestions câu hỏi</span>
+            </div>
+            <span class="badge badge-exam-trial" id="questionProgress">Câu 1/@totalQuestions</span>
+        </div>
+
+        <div class="progress mb-4" style="height: 6px;">
+            <div class="progress-bar" id="progressBar" role="progressbar" style="width: @(totalQuestions > 0 ? 100.0 / totalQuestions : 0)%"></div>
+        </div>
+
+        <form asp-action="Submit" method="post" id="examForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ExamSessionId" value="@session.Id" />
+
+            @for (var i = 0; i < questions.Count; i++)
+            {
+                var q = questions[i];
+                var isMultiple = q.QuestionType == (int)QuestionTypeEnum.MultipleChoice;
+                var selectedIds = q.SelectedAnswerOptionIds ?? new List<long>();
+                <div class="question-block exam-question-panel @(i == firstUnansweredIndex ? "" : "d-none")" data-index="@i" data-question-id="@q.QuestionId">
+                    <input type="hidden" name="Answers[@i].QuestionId" value="@q.QuestionId" />
+                    <div class="exam-question-header mb-3">
+                        <div class="exam-question-title">
+                            <span class="exam-question-num">@q.SortOrder</span>
+                            <div class="exam-question-text">
+                                <div class="fw-semibold">@q.Content</div>
+                                <div class="exam-question-meta mt-2">
+                                    <span class="badge bg-secondary">@q.Points điểm</span>
+                                    @if (isMultiple)
+                                    {
+                                        <span class="badge bg-info">Chọn nhiều</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @{
+                        var questionImage = new QuestionImagePartialModel
+                        {
+                            RelativeImageUrl = q.ImageUrl,
+                            ApiBaseUrl = Model.ApiBaseUrl,
+                            AltText = $"Ảnh câu hỏi {q.SortOrder}",
+                            Variant = "take"
+                        };
+                    }
+                    <partial name="_QuestionImage" model="questionImage" />
+
+                    <div class="exam-answer-list">
+                    @foreach (var opt in q.AnswerOptions ?? new List<AnswerOptionSaveModel>())
+                    {
+                        var isChecked = selectedIds.Contains(opt.Id);
+                        if (isMultiple)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input answer-input" type="checkbox"
+                                       name="Answers[@i].SelectedAnswerOptionIds"
+                                       value="@opt.Id"
+                                       id="opt-@q.QuestionId-@opt.Id"
+                                       @(isChecked ? "checked" : null) />
+                                <label class="form-check-label" for="opt-@q.QuestionId-@opt.Id">@opt.Content</label>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input answer-input" type="radio"
+                                       name="Answers[@i].SelectedAnswerOptionIds[0]"
+                                       value="@opt.Id"
+                                       id="opt-@q.QuestionId-@opt.Id"
+                                       @(isChecked ? "checked" : null) />
+                                <label class="form-check-label" for="opt-@q.QuestionId-@opt.Id">@opt.Content</label>
+                            </div>
+                        }
+                    }
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-4 mt-4">
+                <button type="button" class="btn btn-outline-secondary btn-lg" id="btnPrev" disabled>
+                    <i class="fas fa-arrow-left me-1"></i>Câu trước
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary btn-lg" id="btnNext">
+                        Câu tiếp<i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                    <button type="submit" class="btn btn-success btn-lg d-none" id="btnSubmit"
+                            onclick="return confirm('Bạn chắc chắn muốn nộp bài?');">
+                        <i class="fas fa-paper-plane me-1"></i>Nộp bài
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card exam-card exam-timer">
+            <div class="card-body text-center">
+                <div class="text-muted small mb-1">Thời gian còn lại</div>
+                <div class="fs-2 fw-bold text-danger" id="timer">--:--</div>
+                <div class="text-muted small mt-2">Thời gian làm bài: @Model.DurationMinutes phút</div>
+            </div>
+        </div>
+
+        <div class="card exam-card mt-3">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Danh sách câu hỏi</div>
+                <div class="d-flex flex-wrap gap-2" id="questionNav">
+                    @for (var i = 0; i < questions.Count; i++)
+                    {
+                        var q = questions[i];
+                        var hasAnswer = (q.SelectedAnswerOptionIds?.Count ?? 0) > 0;
+                        <button type="button"
+                                class="btn btn-sm @(i == firstUnansweredIndex ? "btn-primary" : hasAnswer ? "btn-success" : "btn-outline-secondary") question-nav-btn"
+                                data-index="@i">
+                            @(i + 1)
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_QuestionImageModal" />
+
+<!-- Cảnh báo vi phạm quy chế thi (chuyển tab / rời màn hình) -->
+<div class="modal fade" id="violationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Cảnh báo vi phạm</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2" id="violationMessage">Không được chuyển tab hoặc di chuột ra ngoài màn hình khi đang làm bài.</p>
+                <p class="mb-0 text-muted small">Số lần vi phạm: <strong id="violationCountText">0/5</strong>. Quá 5 lần bài thi sẽ bị hủy tự động.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Tôi đã hiểu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var totalQuestions = @totalQuestions;
+            var currentIndex = @firstUnansweredIndex;
+            var endTimeMs = @Model.EndTimeUnixMs;
+            var saveUrl = '@Url.Action("SaveProgress", "ExamSession")';
+            var cancelViolationUrl = '@Url.Action("CancelDueToViolation", "ExamSession")';
+            var panels = document.querySelectorAll('.exam-question-panel');
+            var navBtns = document.querySelectorAll('.question-nav-btn');
+            var btnPrev = document.getElementById('btnPrev');
+            var btnNext = document.getElementById('btnNext');
+            var btnSubmit = document.getElementById('btnSubmit');
+            var progressBar = document.getElementById('progressBar');
+            var questionProgress = document.getElementById('questionProgress');
+            var timerEl = document.getElementById('timer');
+            var form = document.getElementById('examForm');
+            var saveTimer = null;
+            var saving = false;
+
+            // --- Giám sát quy chế thi: không chuyển tab / không rời cửa sổ trình duyệt ---
+            var MAX_VIOLATIONS = 5;
+            var violationCount = 0;
+            var violationLocked = false;
+            var lastViolationAt = 0;
+            var violationModalEl = document.getElementById('violationModal');
+            var violationModal = violationModalEl && window.bootstrap
+                ? new bootstrap.Modal(violationModalEl)
+                : null;
+
+            function isExamLocked() {
+                return !form || form.dataset.submitted || violationLocked;
+            }
+
+            function updateViolationUi() {
+                var countEl = document.getElementById('violationCountText');
+                if (countEl) countEl.textContent = violationCount + '/' + MAX_VIOLATIONS;
+            }
+
+            function registerViolation(reason) {
+                if (isExamLocked()) return;
+
+                // Debounce 1.5s để tránh đếm trùng khi blur + visibilitychange cùng lúc
+                var now = Date.now();
+                if (now - lastViolationAt < 1500) return;
+                lastViolationAt = now;
+
+                violationCount++;
+                updateViolationUi();
+
+                var msgEl = document.getElementById('violationMessage');
+                if (msgEl) {
+                    msgEl.textContent = reason === 'tab'
+                        ? 'Bạn vừa chuyển sang tab/cửa sổ khác. Vui lòng tập trung làm bài trên màn hình thi.'
+                        : 'Bạn vừa di chuyển chuột ra ngoài vùng làm bài. Vui lòng giữ chuột trong màn hình thi.';
+                }
+
+                if (violationCount >= MAX_VIOLATIONS) {
+                    autoCancelDueToViolation();
+                    return;
+                }
+
+                if (violationModal) violationModal.show();
+                else alert('Cảnh báo vi phạm ' + violationCount + '/' + MAX_VIOLATIONS + '. Không được chuyển tab hoặc rời màn hình khi đang thi.');
+            }
+
+            function buildFormBody(includeViolationCount) {
+                var token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                var body = new URLSearchParams();
+                body.append('ExamSessionId', form.querySelector('input[name="ExamSessionId"]').value);
+                if (includeViolationCount) {
+                    body.append('ViolationCount', String(violationCount));
+                }
+                if (token) body.append('__RequestVerificationToken', token);
+
+                var answers = collectAnswers();
+                answers.forEach(function (answer, i) {
+                    body.append('Answers[' + i + '].QuestionId', answer.questionId);
+                    answer.selectedAnswerOptionIds.forEach(function (id, j) {
+                        body.append('Answers[' + i + '].SelectedAnswerOptionIds[' + j + ']', id);
+                    });
+                });
+                return body;
+            }
+
+            function autoCancelDueToViolation() {
+                if (violationLocked || !form) return;
+                violationLocked = true;
+                form.dataset.submitted = '1';
+                if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+
+                if (violationModal) violationModal.hide();
+                alert('Bạn đã vi phạm quy chế thi quá ' + MAX_VIOLATIONS + ' lần. Hệ thống sẽ tự động hủy bài thi.');
+
+                fetch(cancelViolationUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: buildFormBody(true).toString()
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data.success && data.redirectUrl) {
+                            window.location.href = data.redirectUrl;
+                        } else {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function () {
+                        window.location.reload();
+                    });
+            }
+
+            function startExamMonitoring() {
+                // Chuyển tab / thu nhỏ cửa sổ
+                document.addEventListener('visibilitychange', function () {
+                    if (document.hidden) registerViolation('tab');
+                });
+
+                // Mất focus cửa sổ (Alt+Tab, click sang app khác)
+                window.addEventListener('blur', function () {
+                    if (document.hidden) return;
+                    registerViolation('tab');
+                });
+
+                // Chuột rời khỏi vùng document (ra ngoài cửa sổ trình duyệt)
+                document.documentElement.addEventListener('mouseleave', function (e) {
+                    if (e.relatedTarget || isExamLocked()) return;
+                    registerViolation('mouse');
+                });
+            }
+
+            function isQuestionAnswered(index) {
+                var panel = panels[index];
+                if (!panel) return false;
+                return panel.querySelectorAll('.answer-input:checked').length > 0;
+            }
+
+            function countUnanswered() {
+                var count = 0;
+                panels.forEach(function (panel) {
+                    if (panel.querySelectorAll('.answer-input:checked').length === 0) count++;
+                });
+                return count;
+            }
+
+            function allQuestionsAnswered() {
+                return countUnanswered() === 0;
+            }
+
+            function updateSubmitState() {
+                if (!btnSubmit) return;
+                // Chỉ cho nộp khi đã chọn đáp án cho TẤT CẢ câu hỏi.
+                btnSubmit.disabled = !allQuestionsAnswered();
+            }
+
+            function updateNavState() {
+                navBtns.forEach(function (btn, i) {
+                    var answered = isQuestionAnswered(i);
+                    btn.classList.remove('btn-primary', 'btn-outline-secondary', 'btn-success');
+                    if (i === currentIndex) {
+                        btn.classList.add('btn-primary');
+                    } else if (answered) {
+                        btn.classList.add('btn-success');
+                    } else {
+                        btn.classList.add('btn-outline-secondary');
+                    }
+                });
+            }
+
+            function showQuestion(index) {
+                if (index < 0 || index >= totalQuestions) return;
+                currentIndex = index;
+
+                panels.forEach(function (panel, i) {
+                    panel.classList.toggle('d-none', i !== index);
+                });
+
+                btnPrev.disabled = index === 0;
+                var isLast = index === totalQuestions - 1;
+                btnNext.classList.toggle('d-none', isLast);
+                btnSubmit.classList.toggle('d-none', !isLast);
+
+                questionProgress.textContent = 'Câu ' + (index + 1) + '/' + totalQuestions;
+                progressBar.style.width = ((index + 1) / totalQuestions * 100) + '%';
+                updateNavState();
+                updateSubmitState();
+            }
+
+            function collectAnswers() {
+                var answers = [];
+                panels.forEach(function (panel) {
+                    var questionId = parseInt(panel.dataset.questionId, 10);
+                    var selected = [];
+                    panel.querySelectorAll('.answer-input:checked').forEach(function (input) {
+                        selected.push(parseInt(input.value, 10));
+                    });
+                    if (selected.length > 0) {
+                        answers.push({
+                            questionId: questionId,
+                            selectedAnswerOptionIds: selected
+                        });
+                    }
+                });
+                return answers;
+            }
+
+            function saveProgress() {
+                // Khi đang nộp bài/đã nộp bài thì không auto-save nữa (tránh spam request và dính rate limit)
+                if (!form || saving || form.dataset.submitted) return;
+                saving = true;
+
+                var token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                var body = new URLSearchParams();
+                body.append('ExamSessionId', form.querySelector('input[name="ExamSessionId"]').value);
+                if (token) body.append('__RequestVerificationToken', token);
+
+                var answers = collectAnswers();
+                answers.forEach(function (answer, i) {
+                    body.append('Answers[' + i + '].QuestionId', answer.questionId);
+                    answer.selectedAnswerOptionIds.forEach(function (id, j) {
+                        body.append('Answers[' + i + '].SelectedAnswerOptionIds[' + j + ']', id);
+                    });
+                });
+
+                fetch(saveUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (!data.success) {
+                            console.warn('Lưu bài thi:', data.message);
+                        }
+                    })
+                    .catch(function () { })
+                    .finally(function () { saving = false; });
+            }
+
+            function scheduleSave() {
+                if (!form || form.dataset.submitted) return;
+                if (saveTimer) clearTimeout(saveTimer);
+                // Debounce dài hơn để tránh vượt rate limit khi người dùng tick/đổi câu liên tục
+                saveTimer = setTimeout(saveProgress, 1500);
+            }
+
+            btnPrev.addEventListener('click', function () {
+                scheduleSave();
+                showQuestion(currentIndex - 1);
+            });
+
+            btnNext.addEventListener('click', function () {
+                scheduleSave();
+                showQuestion(currentIndex + 1);
+            });
+
+            navBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    scheduleSave();
+                    showQuestion(parseInt(btn.dataset.index, 10));
+                });
+            });
+
+            form.querySelectorAll('.answer-input').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    updateNavState();
+                    updateSubmitState();
+                    scheduleSave();
+                });
+            });
+
+            form.addEventListener('submit', function (e) {
+                // Đánh dấu đang nộp bài để dừng auto-save
+                form.dataset.submitted = '1';
+                if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+                // Chặn thao tác nộp bài thủ công nếu chưa trả lời đủ tất cả câu
+                if (!form.dataset.forceSubmit && !allQuestionsAnswered()) {
+                    e.preventDefault();
+                    // Nếu chặn submit thì bỏ cờ submitted để auto-save hoạt động lại
+                    delete form.dataset.submitted;
+                    var missing = countUnanswered();
+                    alert('Bạn chưa trả lời đủ tất cả câu hỏi. Còn thiếu ' + missing + ' câu.');
+                    updateSubmitState();
+                    return false;
+                }
+                return true;
+            });
+
+            function updateTimer() {
+                var diff = Math.floor((endTimeMs - Date.now()) / 1000);
+                if (diff <= 0) {
+                    timerEl.textContent = '00:00';
+                    if (form && !form.dataset.submitted) {
+                        form.dataset.submitted = '1';
+                        form.dataset.forceSubmit = '1';
+                        if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+                        setTimeout(function () { form.submit(); }, 300);
+                    }
+                    return;
+                }
+                var m = Math.floor(diff / 60);
+                var s = diff % 60;
+                timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            }
+
+            if (totalQuestions === 0) {
+                btnPrev.disabled = true;
+                btnNext.classList.add('d-none');
+                btnSubmit.classList.remove('d-none');
+                updateSubmitState();
+            } else {
+                showQuestion(currentIndex);
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+            startExamMonitoring();
+        })();
+    </script>
+}

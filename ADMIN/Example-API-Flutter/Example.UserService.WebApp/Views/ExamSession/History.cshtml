@@ -1,0 +1,85 @@
+@model Example.UserService.WebApp.Models.ExamSession.ExamSessionHistoryViewModel
+
+<div class="d-flex align-items-center justify-content-between section-title">
+    <h4 class="mb-0 border-0 pb-0">Lịch sử kết quả</h4>
+    <span class="text-muted small">@Model.TotalItems bài</span>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger border-0">@Model.ErrorMessage</div>
+}
+
+@if (Model.Items.Count == 0)
+{
+    <div class="card exam-card">
+        <div class="card-body text-center py-5 text-muted">
+            Chưa có lịch sử thi
+        </div>
+    </div>
+}
+else
+{
+    <div class="history-list">
+        @foreach (var item in Model.Items)
+        {
+            var percent = item.MaxScore > 0
+                ? Math.Round((double)item.TotalScore / (double)item.MaxScore * 100, 1)
+                : 0;
+            var scoreClass = percent >= 80 ? "score-high" : percent >= 50 ? "score-mid" : "score-low";
+            var statusText = item.Status switch
+            {
+                (int)ExamSessionStatusEnum.Expired => "Hết giờ",
+                (int)ExamSessionStatusEnum.Cancelled => "Bị hủy bỏ",
+                _ => "Hoàn thành"
+            };
+
+            <div class="card exam-card history-item mb-3">
+                <div class="card-body p-3 p-md-4">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-5">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                <h6 class="mb-0 fw-semibold">@item.ExamSetName</h6>
+                                <span class="badge badge-exam-trial">
+                                    @(item.ExamType == (int)ExamTypeEnum.Trial ? "Thi thử" : "Thi chính thức")
+                                </span>
+                                <span class="badge @(item.Status == (int)ExamSessionStatusEnum.Cancelled ? "bg-danger text-white" : "bg-light text-muted border")">@statusText</span>
+                                @if (item.Status == (int)ExamSessionStatusEnum.Cancelled && item.ViolationCount > 0)
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger">
+                                        @item.ViolationCount lần vi phạm
+                                    </span>
+                                }
+                            </div>
+                            <div class="history-meta text-muted small">
+                                @item.StartedAt.ToString("dd/MM/yyyy HH:mm")
+                                @if (item.FinishedAt.HasValue)
+                                {
+                                    <span> – @item.FinishedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="history-score-bar @scoreClass">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="fw-semibold">@item.TotalScore.ToString("0.##") / @item.MaxScore.ToString("0.##")</span>
+                                    <span class="text-muted">@percent%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: @percent%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @await Html.PartialAsync("_Pagination", Model)
+}

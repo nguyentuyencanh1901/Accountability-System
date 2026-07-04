@@ -1,0 +1,232 @@
+@model Example.UserService.WebAdmin.Models.Question.QuestionFormViewModel
+@using Example.Common.Enums
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") câu hỏi</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post" id="question-form" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ImageUrl" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <div class="form-group">
+                <label asp-for="FieldId"></label>
+                <select asp-for="FieldId" asp-items="Model.FieldOptions" class="form-control"></select>
+                <span asp-validation-for="FieldId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Content"></label>
+                <textarea asp-for="Content" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageFile">Ảnh minh họa</label>
+                @if (!string.IsNullOrWhiteSpace(Model.ImagePreviewUrl))
+                {
+                    <div class="mb-2">
+                        <img src="@Model.ImagePreviewUrl" alt="Ảnh câu hỏi" class="img-thumbnail" style="max-height: 180px;" id="question-image-preview" />
+                    </div>
+                }
+                else
+                {
+                    <img src="" alt="" class="img-thumbnail mb-2 d-none" style="max-height: 180px;" id="question-image-preview" />
+                }
+                <input asp-for="ImageFile" type="file" accept="image/jpeg,image/png,image/heif,image/heic,image/webp" class="form-control-file" id="question-image-input" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                @if (Model.IsEdit && !string.IsNullOrWhiteSpace(Model.ImageUrl))
+                {
+                    <div class="custom-control custom-checkbox mt-2">
+                        <input asp-for="RemoveImage" class="custom-control-input" id="remove-image" />
+                        <label class="custom-control-label" for="remove-image">Xóa ảnh hiện tại</label>
+                    </div>
+                }
+                <small class="form-text text-muted">JPG, PNG, HEIF — tối đa 5MB. Để trống nếu không đổi ảnh.</small>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="Points"></label>
+                        <input asp-for="Points" class="form-control" type="number" min="1" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="QuestionType"></label>
+                        <select asp-for="QuestionType" asp-items="Model.QuestionTypeOptions" class="form-control" id="question-type"></select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="DifficultyLevel"></label>
+                        <select asp-for="DifficultyLevel" asp-items="Model.DifficultyLevelOptions" class="form-control"></select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="Status"></label>
+                        <select asp-for="Status" asp-items="Model.StatusOptions" class="form-control"></select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Đáp án</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-answer">
+                    <i class="fas fa-plus"></i> Thêm đáp án
+                </button>
+            </div>
+            <p class="text-muted small mb-2" id="answer-hint">
+                Loại <strong>một đáp án</strong>: chỉ được chọn đúng 1 đáp án. Loại <strong>nhiều đáp án</strong>: được chọn nhiều đáp án đúng.
+            </p>
+            <div id="answer-options">
+                @for (var i = 0; i < Model.AnswerOptions.Count; i++)
+                {
+                    <div class="row align-items-center mb-2 answer-row" data-index="@i">
+                        <input type="hidden" asp-for="AnswerOptions[i].Id" />
+                        <input type="hidden" asp-for="AnswerOptions[i].SortOrder" class="sort-order-input" />
+                        <div class="col-md-8">
+                            <input asp-for="AnswerOptions[i].Content" class="form-control" placeholder="Nội dung đáp án @(i + 1)" />
+                        </div>
+                        <div class="col-md-2">
+                            <div class="custom-control custom-checkbox">
+                                <input asp-for="AnswerOptions[i].IsCorrect" class="custom-control-input answer-correct" data-index="@i" />
+                                <label class="custom-control-label" for="AnswerOptions_@(i)__IsCorrect">Đúng</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-right">
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-answer" title="Xóa đáp án">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const singleChoice = '@((int)QuestionTypeEnum.SingleChoice)';
+            const questionTypeSelect = document.getElementById('question-type');
+            const container = document.getElementById('answer-options');
+            const addBtn = document.getElementById('btn-add-answer');
+            let nextIndex = container.querySelectorAll('.answer-row').length;
+
+            function isSingleChoice() {
+                return questionTypeSelect.value === singleChoice;
+            }
+
+            function enforceSingleCorrect(changed) {
+                if (!isSingleChoice()) return;
+                container.querySelectorAll('.answer-correct').forEach(cb => {
+                    if (cb !== changed && changed.checked) cb.checked = false;
+                });
+            }
+
+            function reindexRows() {
+                const rows = container.querySelectorAll('.answer-row');
+                rows.forEach((row, newIndex) => {
+                    row.dataset.index = newIndex;
+                    row.querySelectorAll('input, label').forEach(el => {
+                        if (el.name) el.name = el.name.replace(/AnswerOptions\[\d+\]/, `AnswerOptions[${newIndex}]`);
+                        if (el.id) el.id = el.id.replace(/AnswerOptions_\d+__/, `AnswerOptions_${newIndex}__`);
+                        if (el.htmlFor) el.htmlFor = el.htmlFor.replace(/AnswerOptions_\d+__/, `AnswerOptions_${newIndex}__`);
+                        if (el.dataset.index !== undefined) el.dataset.index = newIndex;
+                    });
+                    const sortInput = row.querySelector('.sort-order-input');
+                    if (sortInput) sortInput.value = newIndex + 1;
+                    const contentInput = row.querySelector('input[type="text"]');
+                    if (contentInput) contentInput.placeholder = `Nội dung đáp án ${newIndex + 1}`;
+                });
+                nextIndex = rows.length;
+                updateRemoveButtons();
+            }
+
+            function updateRemoveButtons() {
+                const rows = container.querySelectorAll('.answer-row');
+                const canRemove = rows.length > 2;
+                rows.forEach(row => {
+                    const btn = row.querySelector('.btn-remove-answer');
+                    if (btn) btn.disabled = !canRemove;
+                });
+            }
+
+            function bindRowEvents(row) {
+                const correctCb = row.querySelector('.answer-correct');
+                if (correctCb) {
+                    correctCb.addEventListener('change', function () { enforceSingleCorrect(this); });
+                }
+                const removeBtn = row.querySelector('.btn-remove-answer');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function () {
+                        if (container.querySelectorAll('.answer-row').length <= 2) return;
+                        row.remove();
+                        reindexRows();
+                    });
+                }
+            }
+
+            addBtn.addEventListener('click', function () {
+                const row = document.createElement('div');
+                row.className = 'row align-items-center mb-2 answer-row';
+                row.dataset.index = nextIndex;
+                row.innerHTML = `
+                    <input type="hidden" name="AnswerOptions[${nextIndex}].Id" value="0" />
+                    <input type="hidden" name="AnswerOptions[${nextIndex}].SortOrder" value="${nextIndex + 1}" class="sort-order-input" />
+                    <div class="col-md-8">
+                        <input name="AnswerOptions[${nextIndex}].Content" class="form-control" placeholder="Nội dung đáp án ${nextIndex + 1}" />
+                    </div>
+                    <div class="col-md-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" name="AnswerOptions[${nextIndex}].IsCorrect" value="true" class="custom-control-input answer-correct" id="AnswerOptions_${nextIndex}__IsCorrect" data-index="${nextIndex}" />
+                            <input type="hidden" name="AnswerOptions[${nextIndex}].IsCorrect" value="false" />
+                            <label class="custom-control-label" for="AnswerOptions_${nextIndex}__IsCorrect">Đúng</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-right">
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-remove-answer" title="Xóa đáp án"><i class="fas fa-times"></i></button>
+                    </div>`;
+                container.appendChild(row);
+                nextIndex++;
+                bindRowEvents(row);
+                updateRemoveButtons();
+            });
+
+            questionTypeSelect.addEventListener('change', function () {
+                if (isSingleChoice()) {
+                    const checked = Array.from(container.querySelectorAll('.answer-correct')).filter(c => c.checked);
+                    if (checked.length > 1) {
+                        checked.slice(1).forEach(c => c.checked = false);
+                    }
+                }
+            });
+
+            container.querySelectorAll('.answer-row').forEach(bindRowEvents);
+            updateRemoveButtons();
+
+            const imageInput = document.getElementById('question-image-input');
+            const imagePreview = document.getElementById('question-image-preview');
+            if (imageInput && imagePreview) {
+                imageInput.addEventListener('change', function () {
+                    const file = this.files && this.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.classList.remove('d-none');
+                    };
+                    reader.readAsDataURL(file);
+                    const removeCheckbox = document.getElementById('remove-image');
+                    if (removeCheckbox) removeCheckbox.checked = false;
+                });
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,49 @@
+@model Example.UserService.WebApp.Models.ExamSession.ExamSessionIndexViewModel
+
+<h4 class="section-title">Bài thi đang làm dở</h4>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger border-0">@Model.ErrorMessage</div>
+}
+
+<div class="card exam-card">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="text-muted small">
+                    <th class="ps-4">Bộ đề</th>
+                    <th>Loại thi</th>
+                    <th>Bắt đầu</th>
+                    <th>Điểm tối đa</th>
+                    <th class="pe-4" width="120"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-5">Không có bài thi đang làm</td></tr>
+                }
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td class="ps-4">@item.ExamSetName</td>
+                        <td>
+                            <span class="badge badge-exam-trial">
+                                @(item.ExamType == (int)ExamTypeEnum.Trial ? "Thi thử" : "Thi chính thức")
+                            </span>
+                        </td>
+                        <td class="text-muted small">@item.StartedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@item.MaxScore</td>
+                        <td class="pe-4">
+                            <a asp-action="Take" asp-route-id="@item.Id" class="btn btn-primary btn-sm">Tiếp tục</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="p-3">
+            @await Html.PartialAsync("_Pagination", Model)
+        </div>
+    </div>
+</div>

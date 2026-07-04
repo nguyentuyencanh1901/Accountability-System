@@ -1,0 +1,54 @@
+@model Example.UserService.WebApp.Models.ExamSet.ExamSetIndexViewModel
+@using Example.Common.Utilities
+@inject IExamSetService ExamSetService
+
+<h4 class="section-title">Kỳ thi được phân công</h4>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger border-0">@Model.ErrorMessage</div>
+}
+
+<div class="row g-3">
+    @if (Model.Items.Count == 0)
+    {
+        <div class="col-12">
+            <div class="card exam-card">
+                <div class="card-body text-center py-5 text-muted">
+                    Bạn chưa được phân công kỳ thi nào.
+                </div>
+            </div>
+        </div>
+    }
+    @foreach (var item in Model.Items)
+    {
+        var assignment = item.Assignment;
+        var periodStatus = ExamSetService.GetExamPeriodStatusName(assignment);
+        var displayStatus = ExamSetService.GetDisplayStatusName(assignment);
+        <div class="col-md-6 col-lg-4">
+            <div class="card exam-card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                        <h5 class="card-title mb-0">@assignment.ExamPeriodName</h5>
+                        <span class="badge badge-exam-trial text-nowrap">@ExamSetService.GetExamTypeName(assignment.ExamType)</span>
+                    </div>
+                    <p class="text-muted small mb-2">
+                        @(item.ExamSet?.Name ?? assignment.ExamSetName ?? "Bộ đề ngẫu nhiên")
+                    </p>
+                    @if (assignment.ExamPeriodStartAt.HasValue && assignment.ExamPeriodEndAt.HasValue)
+                    {
+                        <p class="small text-muted mb-2">
+                            @VietnamTimeHelper.ToDisplayString(assignment.ExamPeriodStartAt.Value)
+                            –
+                            @VietnamTimeHelper.ToDisplayString(assignment.ExamPeriodEndAt.Value)
+                        </p>
+                    }
+                    <p class="small text-muted mb-3">
+                        @periodStatus · @displayStatus
+                    </p>
+                    <a asp-action="Details" asp-route-id="@assignment.Id" class="btn btn-outline-primary btn-sm mt-auto">Chi tiết</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

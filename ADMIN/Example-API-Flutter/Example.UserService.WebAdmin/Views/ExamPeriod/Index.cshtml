@@ -1,0 +1,76 @@
+@model Example.UserService.WebAdmin.Models.ExamPeriod.ExamPeriodIndexViewModel
+@using Example.Common.Utilities
+@inject IExamPeriodService ExamPeriodService
+@using Example.UserService.WebAdmin.Helpers
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-calendar-alt"></i> Danh sách kỳ thi</h3>
+        <div class="card-tools"><a asp-action="Create" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Thêm mới</a></div>
+    </div>
+    <div class="card-body table-responsive">
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+        <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Tên kỳ thi</th>
+                    <th>Bắt đầu</th>
+                    <th>Kết thúc</th>
+                    <th>Số phân công</th>
+                    <th>Trạng thái</th>
+                    <th width="200">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0) { <tr><td colspan="7" class="text-center text-muted">Không có dữ liệu</td></tr> }
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.Name</td>
+                        <td>@VietnamTimeHelper.ToDisplayString(item.StartAt)</td>
+                        <td>@VietnamTimeHelper.ToDisplayString(item.EndAt)</td>
+                        <td>@item.AssignmentCount</td>
+                        <td style="min-width: 170px;">
+                            <form asp-action="UpdateStatus" method="post" class="d-inline js-inline-status-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="pageIndex" value="@Model.PageIndex" />
+                                <select name="status" class="form-control form-control-sm d-inline-block js-inline-status" style="width: 160px;">
+                                    @foreach (var opt in SelectListHelper.ExamPeriodStatuses(item.Status))
+                                    {
+                                        <option value="@opt.Value" selected="@opt.Selected">@opt.Text</option>
+                                    }
+                                </select>
+                            </form>
+                        </td>
+                        <td class="table-actions">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary btn-xs" title="Theo dõi"><i class="fas fa-chart-line"></i></a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-info btn-xs" title="Sửa"><i class="fas fa-edit"></i></a>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Xóa kỳ thi?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-xs"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @await Html.PartialAsync("_Pagination", Model)
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            document.addEventListener('change', function (e) {
+                var el = e.target;
+                if (!el || !el.classList || !el.classList.contains('js-inline-status')) return;
+                var form = el.closest('form');
+                if (!form) return;
+                if (!confirm('Cập nhật trạng thái?')) return;
+                form.submit();
+            });
+        })();
+    </script>
+}

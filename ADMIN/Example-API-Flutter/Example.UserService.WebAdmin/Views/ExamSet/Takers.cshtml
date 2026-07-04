@@ -1,0 +1,55 @@
+@model Example.UserService.WebAdmin.Models.ExamSet.ExamSetTakersViewModel
+@inject IExamSetService ExamSetService
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-users"></i> Thí sinh đã thi — <strong>@Model.ExamSetName</strong>
+        </h3>
+        <div class="card-tools">
+            <a asp-action="Index" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Quay lại</a>
+        </div>
+    </div>
+    <div class="card-body table-responsive">
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+        <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th>Thí sinh</th>
+                    <th>Tài khoản</th>
+                    <th>Loại thi</th>
+                    <th>Bắt đầu</th>
+                    <th>Nộp bài</th>
+                    <th class="text-center">Tổng câu</th>
+                    <th class="text-center text-success">Đúng</th>
+                    <th class="text-center text-danger">Sai</th>
+                    <th class="text-center text-muted">Bỏ trống</th>
+                    <th>Điểm</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr><td colspan="11" class="text-center text-muted">Chưa có thí sinh nào thi bộ đề này.</td></tr>
+                }
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.UserFullName</td>
+                        <td>@item.Username</td>
+                        <td>@ExamSetService.GetExamTypeName(item.ExamType)</td>
+                        <td>@item.StartedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@(item.FinishedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                        <td class="text-center">@item.TotalQuestions</td>
+                        <td class="text-center text-success fw-semibold">@item.CorrectCount</td>
+                        <td class="text-center text-danger fw-semibold">@item.WrongCount</td>
+                        <td class="text-center text-muted fw-semibold">@item.SkippedCount</td>
+                        <td>@item.TotalScore / @item.MaxScore</td>
+                        <td>@ExamSetService.GetSessionStatusName(item.Status)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @await Html.PartialAsync("_Pagination", Model)
+    </div>
+</div>

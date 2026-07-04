@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản trị đánh giá</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+        @await Html.PartialAsync("Components/_AdminHeader")
+        @await Html.PartialAsync("Components/_AdminSidebar")
+
+        <div class="content-wrapper">
+            @if (ViewData["PageTitle"] != null)
+            {
+                <section class="content-header">
+                    <div class="container-fluid">
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <h1>@ViewData["PageTitle"]</h1>
+                            </div>
+                            @if (ViewData["Breadcrumb"] != null)
+                            {
+                                <div class="col-sm-6">
+                                    <ol class="breadcrumb float-sm-right">
+                                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Bảng điều khiển</a></li>
+                                        <li class="breadcrumb-item active">@ViewData["Breadcrumb"]</li>
+                                    </ol>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            }
+            <section class="content">
+                <div class="container-fluid">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <i class="icon fas fa-check"></i> @TempData["SuccessMessage"]
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <i class="icon fas fa-ban"></i> @TempData["ErrorMessage"]
+                        </div>
+                    }
+                    @RenderBody()
+                </div>
+            </section>
+        </div>
+
+        @await Html.PartialAsync("Components/_AdminFooter")
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

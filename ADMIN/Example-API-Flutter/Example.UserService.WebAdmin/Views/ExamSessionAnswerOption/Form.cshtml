@@ -1,0 +1,27 @@
+@model Example.UserService.WebAdmin.Models.ExamSessionAnswerOption.ExamSessionAnswerOptionFormViewModel
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") đáp án đã chọn</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <div class="form-group">
+                <label asp-for="ExamSessionAnswerId"></label>
+                <select asp-for="ExamSessionAnswerId" asp-items="Model.ExamSessionAnswerOptions" class="form-control"></select>
+                <span asp-validation-for="ExamSessionAnswerId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AnswerOptionId"></label>
+                <select asp-for="AnswerOptionId" asp-items="Model.AnswerOptionOptions" class="form-control"></select>
+                <span asp-validation-for="AnswerOptionId" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

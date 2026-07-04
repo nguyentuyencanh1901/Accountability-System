@@ -1,0 +1,37 @@
+@model Example.UserService.WebAdmin.Models.ExamSession.ExamSessionDetailViewModel
+@inject IExamSessionService ExamSessionService
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-eye"></i> Chi tiết bài thi</h3>
+        <div class="card-tools"><a asp-action="Index" class="btn btn-secondary btn-sm">Quay lại</a></div>
+    </div>
+    <div class="card-body">
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+        else if (Model.Item != null)
+        {
+            var item = Model.Item;
+            <dl class="row">
+                <dt class="col-sm-3">Thí sinh</dt><dd class="col-sm-9">@item.UserFullName</dd>
+                <dt class="col-sm-3">Bộ đề</dt><dd class="col-sm-9">@item.ExamSetName</dd>
+                <dt class="col-sm-3">Loại thi</dt><dd class="col-sm-9">@ExamSessionService.GetExamTypeName(item.ExamType)</dd>
+                <dt class="col-sm-3">Bắt đầu</dt><dd class="col-sm-9">@item.StartedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                <dt class="col-sm-3">Kết thúc</dt><dd class="col-sm-9">@(item.FinishedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
+                <dt class="col-sm-3">Điểm</dt><dd class="col-sm-9">@item.TotalScore / @item.MaxScore</dd>
+                <dt class="col-sm-3">Trạng thái</dt><dd class="col-sm-9">@ExamSessionService.GetStatusName(item.Status)</dd>
+            </dl>
+            @if (item.Questions?.Count > 0)
+            {
+                <h5 class="mt-4">Câu hỏi (@item.Questions.Count)</h5>
+                <ol>
+                    @foreach (var q in item.Questions)
+                    {
+                        <li class="mb-2">@q.Content <span class="badge badge-secondary">@q.Points điểm</span></li>
+                    }
+                </ol>
+            }
+        }
+    </div>
+</div>

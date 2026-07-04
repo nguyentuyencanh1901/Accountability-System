@@ -1,0 +1,724 @@
+/* ── Admin theme — đồng bộ màu với WebApp (enterprise) ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --header-bg: #0f2744;
+    --header-bg-end: #1a3352;
+    --header-accent: #3b82f6;
+    --app-primary: #1e40af;
+    --app-primary-hover: #1e3a8a;
+    --app-text: #1e293b;
+    --app-text-muted: #64748b;
+    --app-border: #e2e8f0;
+    --app-bg: #eef2f7;
+    --app-surface: #ffffff;
+    --app-radius: 0.625rem;
+    --app-shadow: 0 1px 2px rgba(15, 39, 68, 0.05), 0 4px 16px rgba(15, 39, 68, 0.06);
+    --color-blue: #2563eb;
+    --color-blue-dark: #1e40af;
+    --color-blue-soft: #eff6ff;
+    --color-amber: #d97706;
+    --color-amber-dark: #b45309;
+    --color-amber-soft: #fffbeb;
+    --color-teal: #0d9488;
+    --color-teal-dark: #0f766e;
+    --color-teal-soft: #f0fdfa;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 0.9375rem;
+    color: var(--app-text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+html {
+    overflow-x: hidden;
+}
+
+.wrapper {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* ── Sidebar (navy — giống header WebApp) ── */
+.main-sidebar.sidebar-dark-primary {
+    background: linear-gradient(180deg, var(--header-bg-end) 0%, var(--header-bg) 100%) !important;
+}
+
+.main-sidebar .brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.9rem 0.85rem;
+    padding-right: 2.25rem;
+    min-height: 3.25rem;
+}
+
+.sidebar-collapse-btn {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.5rem;
+    z-index: 10;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.55);
+    border-radius: 0.35rem;
+    transition: color 0.15s, background 0.15s;
+}
+
+.sidebar-collapse-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body.sidebar-collapse .sidebar-collapse-btn {
+    display: none;
+}
+
+.main-sidebar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+.main-sidebar .sidebar.sidebar-with-user {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 1rem;
+    overflow: hidden;
+}
+
+.sidebar-nav-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 0.5rem;
+}
+
+.sidebar-user-panel {
+    flex-shrink: 0;
+    margin-top: auto;
+    margin-bottom: 0.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.65rem 0.65rem 0.5rem;
+    background: rgba(0, 0, 0, 0.12);
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.sidebar-user-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    color: #fff !important;
+    text-decoration: none !important;
+    padding: 0.35rem 0.2rem;
+    border-radius: 0.45rem;
+    overflow: hidden;
+}
+
+.sidebar-user-toggle:hover,
+.sidebar-user-toggle:focus {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff !important;
+}
+
+.sidebar-user-toggle::after {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.sidebar-user-avatar {
+    font-size: 1.65rem;
+    line-height: 1;
+    color: #93c5fd;
+    flex-shrink: 0;
+}
+
+.sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    text-align: left;
+}
+
+.sidebar-user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.sidebar-user-username {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.sidebar-user-dropdown {
+    min-width: 14rem;
+    margin-bottom: 0.35rem !important;
+}
+
+body.sidebar-collapse .sidebar-user-info,
+body.sidebar-collapse .sidebar-user-toggle::after {
+    display: none !important;
+}
+
+body.sidebar-collapse .sidebar-user-toggle {
+    justify-content: center;
+    padding: 0.35rem;
+}
+
+body.sidebar-collapse .sidebar-user-panel {
+    padding: 0.5rem 0.35rem 0.35rem;
+    margin-bottom: 0.35rem;
+}
+
+.main-sidebar .brand-text {
+    font-weight: 600 !important;
+    color: #fff !important;
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+}
+
+.main-sidebar .brand-image {
+    color: #93c5fd;
+    font-size: 1.3rem;
+    opacity: 1;
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+    line-height: 1;
+}
+
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link {
+    color: rgba(255, 255, 255, 0.72);
+    border-radius: 0.45rem;
+    margin: 0.1rem 0.5rem;
+    font-size: 0.875rem;
+    max-width: calc(100% - 1rem);
+}
+
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
+    background: rgba(59, 130, 246, 0.35) !important;
+    color: #fff !important;
+    box-shadow: inset 0 0 0 1px rgba(147, 197, 253, 0.2);
+}
+
+.sidebar-dark-primary .nav-header {
+    color: rgba(255, 255, 255, 0.4) !important;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    padding: 0.75rem 1rem 0.35rem;
+}
+
+/* ── Top navbar ── */
+.main-header.navbar-white {
+    background: var(--app-surface) !important;
+    border-bottom: 1px solid var(--app-border) !important;
+    box-shadow: 0 1px 4px rgba(15, 39, 68, 0.04);
+}
+
+.main-header .nav-link {
+    color: var(--app-text-muted) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.main-header .nav-link:hover {
+    color: var(--app-text) !important;
+}
+
+.main-header .dropdown-toggle {
+    color: var(--app-text) !important;
+    font-weight: 500;
+}
+
+/* Nút mở sidebar — chỉ hiện khi sidebar đang thu gọn */
+body:not(.sidebar-collapse) .admin-sidebar-toggle {
+    display: none;
+}
+
+/* Thu gọn sidebar — chữ logo đi theo menu, chỉ giữ icon */
+body.sidebar-collapse .main-sidebar .brand-text {
+    display: none !important;
+}
+
+body.sidebar-collapse .main-sidebar .brand-link {
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+body.sidebar-collapse .main-sidebar .brand-image {
+    margin-top: 0.15rem;
+}
+
+.admin-top-navbar {
+    display: flex !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.admin-navbar-left {
+    margin-right: auto;
+}
+
+/* ── Content area ── */
+.content-wrapper {
+    background-color: var(--app-bg) !important;
+    min-height: calc(100vh - 57px);
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+.content-header h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--app-text);
+    letter-spacing: -0.02em;
+}
+
+.content-header .breadcrumb-item a {
+    color: var(--color-blue);
+}
+
+.content-header .breadcrumb-item.active {
+    color: var(--app-text-muted);
+}
+
+/* ── Cards ── */
+.card {
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    box-shadow: var(--app-shadow);
+    margin-bottom: 1.25rem;
+}
+
+.card-header {
+    background: var(--app-surface);
+    border-bottom: 1px solid var(--app-border);
+    padding: 0.85rem 1.15rem;
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--app-text);
+    margin: 0;
+}
+
+.card-title .fas,
+.card-title .far {
+    color: var(--app-text-muted);
+    margin-right: 0.35rem;
+}
+
+.card-body {
+    padding: 1.15rem;
+}
+
+/* ── Dashboard KPI cards (trung tính, không khối màu đậm) ── */
+.kpi-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+}
+
+.kpi-card-link:hover {
+    color: inherit;
+}
+
+.kpi-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    padding: 1.1rem 1.15rem;
+    box-shadow: var(--app-shadow);
+    height: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card-link:hover .kpi-card {
+    border-color: #cbd5e1;
+    box-shadow: 0 6px 20px rgba(15, 39, 68, 0.08);
+}
+
+.kpi-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.kpi-icon-blue { background: var(--color-blue-soft); color: var(--color-blue); }
+.kpi-icon-teal { background: var(--color-teal-soft); color: var(--color-teal); }
+.kpi-icon-slate { background: #f1f5f9; color: #475569; }
+.kpi-icon-neutral { background: #f8fafc; color: var(--app-text-muted); }
+
+.kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--app-text-muted);
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+}
+
+.kpi-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--app-text);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.kpi-sub {
+    font-size: 0.72rem;
+    margin-top: 0.25rem;
+    line-height: 1.4;
+}
+
+/* Stat pills trong bảng */
+.stat-pill {
+    display: inline-block;
+    min-width: 1.75rem;
+    text-align: center;
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.35rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.stat-pill-success {
+    background: var(--color-teal-soft);
+    color: var(--color-teal-dark);
+}
+
+.stat-pill-muted {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.stat-pill-warn {
+    background: var(--color-amber-soft);
+    color: #92400e;
+}
+
+.mini-progress {
+    height: 0.35rem;
+    background: #e2e8f0;
+    border-radius: 1rem;
+    overflow: hidden;
+    min-width: 4rem;
+}
+
+.mini-progress-bar {
+    height: 100%;
+    background: var(--color-teal);
+    border-radius: 1rem;
+}
+
+.dashboard-stats-table td {
+    vertical-align: middle;
+}
+
+/* Biểu đồ cột CSS thuần */
+.column-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 1.25rem;
+    min-height: 200px;
+    padding: 0.5rem 0 0;
+}
+
+.column-chart-item {
+    flex: 1;
+    max-width: 4rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.column-chart-bar-wrap {
+    width: 100%;
+    height: 140px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: #f8fafc;
+    border: 1px solid var(--app-border);
+    border-radius: 0.4rem 0.4rem 0 0;
+    padding: 0.35rem 0.35rem 0;
+}
+
+.column-chart-bar {
+    width: 55%;
+    min-height: 4px;
+    background: linear-gradient(180deg, #60a5fa 0%, var(--color-blue) 100%);
+    border-radius: 0.25rem 0.25rem 0 0;
+    transition: height 0.3s ease;
+}
+
+.column-chart-value {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--app-text);
+    margin-top: 0.35rem;
+}
+
+.column-chart-label {
+    font-size: 0.75rem;
+    color: var(--app-text-muted);
+    margin-top: 0.1rem;
+}
+
+/* ── Welcome banner (giống WebApp dashboard-hero) ── */
+.dashboard-welcome {
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-left: 4px solid var(--header-accent);
+    border-radius: var(--app-radius);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--app-shadow);
+}
+
+.dashboard-welcome h5 {
+    font-weight: 600;
+    color: var(--app-text);
+    margin-bottom: 0.35rem;
+}
+
+.dashboard-welcome p {
+    color: var(--app-text-muted);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* ── Tables ── */
+.table {
+    font-size: 0.875rem;
+}
+
+.table thead th,
+.table thead.thead-light th {
+    background: #f8fafc !important;
+    border-bottom: 2px solid var(--app-border) !important;
+    color: var(--app-text-muted);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
+}
+
+.table-bordered {
+    border: 1px solid var(--app-border);
+}
+
+.table-bordered td,
+.table-bordered th {
+    border-color: var(--app-border);
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(248, 250, 252, 0.6);
+}
+
+/* ── Buttons ── */
+.btn-primary {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+    font-weight: 500;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--app-primary-hover);
+    border-color: var(--app-primary-hover);
+}
+
+.btn-info {
+    background-color: var(--color-teal);
+    border-color: var(--color-teal);
+}
+
+.btn-info:hover {
+    background-color: var(--color-teal-dark);
+    border-color: var(--color-teal-dark);
+}
+
+.btn-outline-primary {
+    color: var(--app-primary);
+    border-color: #93c5fd;
+}
+
+.btn-outline-primary:hover {
+    background: var(--color-blue-soft);
+    color: var(--app-primary);
+    border-color: var(--color-blue);
+}
+
+.table-actions .btn {
+    margin-right: 4px;
+}
+
+/* ── Alerts ── */
+.alert-success {
+    background: var(--color-teal-soft);
+    border-color: #99f6e4;
+    color: var(--color-teal-dark);
+}
+
+.alert-danger {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.alert-warning {
+    background: var(--color-amber-soft);
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+/* ── Footer ── */
+.main-footer {
+    background: var(--app-surface);
+    border-top: 1px solid var(--app-border);
+    color: var(--app-text-muted);
+    font-size: 0.8125rem;
+    overflow: hidden;
+}
+
+/* ── Auth (login/register) ── */
+.auth-page {
+    background: linear-gradient(160deg, #eef2f7 0%, #e2e8f0 50%, #eef2f7 100%);
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.auth-card {
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    box-shadow: 0 8px 32px rgba(15, 39, 68, 0.12);
+    background: var(--app-surface);
+    overflow: hidden;
+}
+
+.auth-card-header {
+    background: linear-gradient(180deg, var(--header-bg-end) 0%, var(--header-bg) 100%);
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+    border-bottom: 3px solid var(--header-accent);
+}
+
+.auth-card-header .auth-brand {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+}
+
+.auth-card-header .auth-title {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.auth-card .form-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--app-text-muted);
+}
+
+/* ── Badges & misc ── */
+.badge-primary {
+    background: var(--color-blue-soft);
+    color: var(--color-blue);
+    border: 1px solid #bfdbfe;
+    font-weight: 500;
+}
+
+.callout {
+    border-radius: var(--app-radius);
+}
+
+.callout-info {
+    border-left-color: var(--header-accent);
+    background: var(--color-blue-soft);
+}
+
+/* ── Form validation & required fields ── */
+.form-group > label:has(+ input[data-val-required])::after,
+.form-group > label:has(+ select[data-val-required])::after,
+.form-group > label:has(+ textarea[data-val-required])::after,
+.form-group > label:has(+ .form-control[data-val-required])::after,
+.mb-3 > label:has(+ input[data-val-required])::after,
+.mb-3 > label:has(+ select[data-val-required])::after,
+.mb-3 > label:has(+ textarea[data-val-required])::after,
+.mb-3 > label:has(+ .form-control[data-val-required])::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.input-validation-error,
+.form-control.input-validation-error {
+    border-color: #dc3545 !important;
+}
+
+.field-validation-error,
+span.text-danger.field-validation-error {
+    display: block;
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+}
+
+.validation-summary-errors ul {
+    margin-bottom: 0;
+    padding-left: 1.1rem;
+}

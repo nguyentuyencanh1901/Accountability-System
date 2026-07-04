@@ -1,0 +1,108 @@
+@model Example.UserService.WebAdmin.Models.ExamPeriodAssignment.ExamPeriodAssignmentFormViewModel
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") phân công thi</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ExamSessionId" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="ExamPeriodId"></label>
+                        <select asp-for="ExamPeriodId" asp-items="Model.ExamPeriodOptions" class="form-control"></select>
+                        <span asp-validation-for="ExamPeriodId" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="UserId"></label>
+                        <select asp-for="UserId" asp-items="Model.UserOptions" class="form-control"></select>
+                        <span asp-validation-for="UserId" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="ExamType"></label>
+                        <select asp-for="ExamType" asp-items="Model.ExamTypeOptions" class="form-control" id="exam-type-select"></select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="ExamSetId"></label>
+                        @if (Model.IsEdit)
+                        {
+                            <select asp-for="ExamSetId" class="form-control" id="exam-set-select">
+                                @foreach (var opt in Model.ExamSetPickOptions)
+                                {
+                                    <option value="@opt.Id" data-type="@opt.Type" selected="@(opt.Id == Model.ExamSetId)">@opt.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="ExamSetId" class="text-danger"></span>
+                        }
+                        else
+                        {
+                            <select asp-for="ExamSetIds" class="form-control" multiple size="6" id="exam-set-multi-select">
+                                @foreach (var opt in Model.ExamSetPickOptions)
+                                {
+                                    <option value="@opt.Id" data-type="@opt.Type" selected="@opt.Selected">@opt.Name</option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">Chỉ hiện bộ đề cùng loại với loại thi đã chọn.</small>
+                            <span asp-validation-for="ExamSetIds" class="text-danger"></span>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="Status"></label>
+                        <select asp-for="Status" asp-items="Model.StatusOptions" class="form-control"></select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" asp-route-examPeriodId="@Model.ExamPeriodId" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const examTypeSelect = document.getElementById('exam-type-select');
+            const realType = '@((int)Example.Common.Enums.ExamSetTypeEnum.Real)';
+            const trialType = '@((int)Example.Common.Enums.ExamSetTypeEnum.Trial)';
+            const examTypeReal = '@((int)Example.Common.Enums.ExamTypeEnum.Real)';
+            const examTypeTrial = '@((int)Example.Common.Enums.ExamTypeEnum.Trial)';
+
+            function mapExamTypeToSetType(examType) {
+                return examType === examTypeReal ? realType : trialType;
+            }
+
+            function filterExamSetOptions() {
+                const setType = mapExamTypeToSetType(examTypeSelect.value);
+                const multi = document.getElementById('exam-set-multi-select');
+                const single = document.getElementById('exam-set-select');
+                const target = multi || single;
+                if (!target) return;
+
+                Array.from(target.options).forEach(function (opt) {
+                    const match = opt.dataset.type === setType;
+                    opt.hidden = !match;
+                    opt.disabled = !match;
+                    if (!match) opt.selected = false;
+                });
+            }
+
+            examTypeSelect.addEventListener('change', filterExamSetOptions);
+            filterExamSetOptions();
+        })();
+    </script>
+}

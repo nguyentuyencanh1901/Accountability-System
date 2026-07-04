@@ -1,0 +1,57 @@
+@model Example.UserService.WebAdmin.Models.AnswerOption.AnswerOptionFormViewModel
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb bg-transparent p-0">
+        <li class="breadcrumb-item"><a asp-controller="Question" asp-action="Index">Câu hỏi</a></li>
+        @if (!string.IsNullOrWhiteSpace(Model.FieldName))
+        {
+            <li class="breadcrumb-item"><a asp-controller="Question" asp-action="Index" asp-route-fieldId="@Model.FieldId">@Model.FieldName</a></li>
+        }
+        <li class="breadcrumb-item"><a asp-controller="AnswerOption" asp-action="Index" asp-route-questionId="@Model.QuestionId">Câu #@Model.QuestionId</a></li>
+        <li class="breadcrumb-item active">@(Model.IsEdit ? "Sửa đáp án" : "Thêm đáp án")</li>
+    </ol>
+</nav>
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") đáp án</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="QuestionId" />
+        <input type="hidden" asp-for="FieldId" />
+        <input type="hidden" asp-for="FieldName" />
+        <input type="hidden" asp-for="QuestionContent" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            @if (!string.IsNullOrWhiteSpace(Model.QuestionContent))
+            {
+                <div class="alert alert-light border">
+                    <strong>Câu hỏi:</strong> @Model.QuestionContent
+                </div>
+            }
+            <div class="form-group">
+                <label asp-for="Content"></label>
+                <textarea asp-for="Content" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="SortOrder"></label>
+                        <input asp-for="SortOrder" class="form-control" type="number" min="0" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group form-check mt-4">
+                        <input asp-for="IsCorrect" class="form-check-input" />
+                        <label asp-for="IsCorrect" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" asp-route-questionId="@Model.QuestionId" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

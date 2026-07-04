@@ -1,0 +1,149 @@
+﻿@model Example.UserService.WebAdmin.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+    var displayName = Model.FullName ?? Model.Username ?? "Quản trị viên";
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> @Model.ErrorMessage</div>
+}
+
+<div class="dashboard-welcome mb-4">
+    <h5>Xin chào, @displayName</h5>
+    <p>Tài khoản: <strong>@Model.Username</strong> — Tổng quan hoạt động thi và đánh giá.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <a asp-controller="ExamSession" asp-action="Index" class="kpi-card-link">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-blue"><i class="fas fa-user-graduate"></i></div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Thí sinh dự thi</div>
+                    <div class="kpi-value">@Model.TotalTestTakers</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a asp-controller="ExamSet" asp-action="Index" class="kpi-card-link">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-teal"><i class="fas fa-book"></i></div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Bộ đề thi</div>
+                    <div class="kpi-value">@Model.TotalExamSets</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a asp-controller="ExamSession" asp-action="Index" class="kpi-card-link">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-icon-slate"><i class="fas fa-file-alt"></i></div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Tổng bài thi</div>
+                    <div class="kpi-value">@Model.TotalExamSessions</div>
+                    <div class="kpi-sub text-muted">
+                        HT @Model.CompletedSessions · Đang @Model.InProgressSessions · Hết giờ @Model.ExpiredSessions
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-neutral"><i class="fas fa-percentage"></i></div>
+            <div class="kpi-body">
+                <div class="kpi-label">Điểm TB (bài đã chấm)</div>
+                <div class="kpi-value">@Model.AverageScorePercent.ToString("0.#")%</div>
+                <div class="kpi-sub text-muted">Ngưỡng đạt: ≥ 50%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h3 class="card-title mb-0"><i class="fas fa-table"></i> Thống kê theo năm</h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover mb-0 dashboard-stats-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">Năm</th>
+                            <th>Thí sinh</th>
+                            <th>Tổng bài</th>
+                            <th>Hoàn thành</th>
+                            <th>Đang thi</th>
+                            <th>Hết giờ</th>
+                            <th>TB điểm</th>
+                            <th class="pe-3">Tỷ lệ đạt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.YearlyStats.Count == 0)
+                        {
+                            <tr><td colspan="8" class="text-center text-muted py-4">Chưa có dữ liệu thi.</td></tr>
+                        }
+                        @foreach (var item in Model.YearlyStats)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-semibold">@item.Year</td>
+                                <td>@item.TestTakerCount</td>
+                                <td>@item.ExamSessionCount</td>
+                                <td><span class="stat-pill stat-pill-success">@item.CompletedCount</span></td>
+                                <td><span class="stat-pill stat-pill-muted">@item.InProgressCount</span></td>
+                                <td><span class="stat-pill stat-pill-warn">@item.ExpiredCount</span></td>
+                                <td>@item.AverageScorePercent.ToString("0.#")%</td>
+                                <td class="pe-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="mini-progress flex-grow-1">
+                                            <div class="mini-progress-bar" style="width: @item.PassRatePercent%"></div>
+                                        </div>
+                                        <span class="small text-muted text-nowrap">@item.PassRatePercent.ToString("0.#")%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h3 class="card-title mb-0"><i class="fas fa-chart-column"></i> Số bài thi theo năm</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.YearlyStats.Count == 0)
+                {
+                    <p class="text-muted text-center py-4 mb-0">Chưa có dữ liệu.</p>
+                }
+                else
+                {
+                    <div class="column-chart">
+                        @foreach (var item in Model.YearlyStats.OrderBy(x => x.Year))
+                        {
+                            var height = item.MaxSessionCount > 0
+                                ? Math.Max(8, (int)Math.Round((double)item.ExamSessionCount / item.MaxSessionCount * 100))
+                                : 0;
+                            <div class="column-chart-item" title="@item.Year: @item.ExamSessionCount bài">
+                                <div class="column-chart-bar-wrap">
+                                    <div class="column-chart-bar" style="height: @height%"></div>
+                                </div>
+                                <div class="column-chart-value">@item.ExamSessionCount</div>
+                                <div class="column-chart-label">@item.Year</div>
+                            </div>
+                        }
+                    </div>
+                    <p class="text-muted small text-center mt-3 mb-0">Biểu đồ cột — số phiên thi mỗi năm</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

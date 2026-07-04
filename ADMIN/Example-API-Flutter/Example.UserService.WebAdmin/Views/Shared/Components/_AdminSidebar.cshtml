@@ -1,0 +1,105 @@
+@using Example.UserService.WebAdmin.Const
+@using System.Security.Claims
+@{
+    var menu = ViewData["Menu"]?.ToString() ?? "";
+    var fullName = Context.Session.GetString(SessionKeys.FullName)
+        ?? User.FindFirst(ClaimTypes.GivenName)?.Value
+        ?? User.Identity?.Name
+        ?? "Quản trị viên";
+    var username = Context.Session.GetString(SessionKeys.Username)
+        ?? User.Identity?.Name;
+}
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a asp-controller="Home" asp-action="Index" class="brand-link">
+        <i class="brand-image fas fa-clipboard-check"></i>
+        <span class="brand-text">Quản trị đánh giá</span>
+    </a>
+    <a href="#" class="sidebar-collapse-btn" data-widget="pushmenu" title="Thu gọn menu" aria-label="Thu gọn menu">
+        <i class="fas fa-angles-left"></i>
+    </a>
+    <div class="sidebar sidebar-with-user">
+        <nav class="sidebar-nav-scroll mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                <li class="nav-item">
+                    <a asp-controller="Home" asp-action="Index" class="nav-link @(menu == "Dashboard" ? "active" : "")">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>Bảng điều khiển</p>
+                    </a>
+                </li>
+                <li class="nav-header">HỆ THỐNG</li>
+                <li class="nav-item">
+                    <a asp-controller="AppUser" asp-action="Index" class="nav-link @(menu == "AppUser" ? "active" : "")">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>Người dùng</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="Role" asp-action="Index" class="nav-link @(menu == "Role" ? "active" : "")">
+                        <i class="nav-icon fas fa-user-shield"></i>
+                        <p>Vai trò</p>
+                    </a>
+                </li>
+                <li class="nav-header">NGÂN HÀNG ĐỀ</li>
+                <li class="nav-item">
+                    <a asp-controller="Field" asp-action="Index" class="nav-link @(menu == "Field" ? "active" : "")">
+                        <i class="nav-icon fas fa-layer-group"></i>
+                        <p>Lĩnh vực</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="ExamSet" asp-action="Index" class="nav-link @(menu == "ExamSet" ? "active" : "")">
+                        <i class="nav-icon fas fa-book"></i>
+                        <p>Bộ đề thi</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="Question" asp-action="Index" class="nav-link @(menu == "Question" ? "active" : "")">
+                        <i class="nav-icon fas fa-question-circle"></i>
+                        <p>Câu hỏi</p>
+                    </a>
+                </li>
+                <li class="nav-header">THI CỬ</li>
+                <li class="nav-item">
+                    <a asp-controller="ExamPeriod" asp-action="Index" class="nav-link @(menu == "ExamPeriod" ? "active" : "")">
+                        <i class="nav-icon fas fa-calendar-alt"></i>
+                        <p>Kỳ thi</p>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-user-panel dropup">
+            <a href="#" class="sidebar-user-toggle dropdown-toggle" id="sidebarUserMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="sidebar-user-avatar"><i class="fas fa-user-circle"></i></span>
+                <span class="sidebar-user-info">
+                    <span class="sidebar-user-name">@fullName</span>
+                    @if (!string.IsNullOrWhiteSpace(username))
+                    {
+                        <span class="sidebar-user-username">@username</span>
+                    }
+                </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark sidebar-user-dropdown" aria-labelledby="sidebarUserMenu">
+                <li><span class="dropdown-item-text text-muted small">@fullName</span></li>
+                @if (!string.IsNullOrWhiteSpace(username))
+                {
+                    <li><span class="dropdown-item-text text-muted small">@username</span></li>
+                }
+                <li><hr class="dropdown-divider" /></li>
+                <li class="px-3 py-1">
+                    <a asp-controller="Account" asp-action="ChangePassword" class="btn btn-outline-light btn-sm w-100">
+                        <i class="fas fa-key"></i> Đổi mật khẩu
+                    </a>
+                </li>
+                <li class="px-3 py-1">
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</aside>

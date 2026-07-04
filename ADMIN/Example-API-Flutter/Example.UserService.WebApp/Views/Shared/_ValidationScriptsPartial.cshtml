@@ -1,0 +1,36 @@
+﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    (function () {
+        if (!window.jQuery || !$.validator) return;
+
+        $.extend($.validator.messages, {
+            required: "Trường này không được để trống.",
+            email: "Email không hợp lệ.",
+            url: "Địa chỉ URL không hợp lệ.",
+            date: "Ngày không hợp lệ.",
+            number: "Vui lòng nhập số hợp lệ.",
+            digits: "Chỉ được nhập chữ số.",
+            maxlength: $.validator.format("Tối đa {0} ký tự."),
+            minlength: $.validator.format("Tối thiểu {0} ký tự."),
+            rangelength: $.validator.format("Nhập từ {0} đến {1} ký tự."),
+            range: $.validator.format("Nhập giá trị từ {0} đến {1}."),
+            max: $.validator.format("Giá trị tối đa là {0}."),
+            min: $.validator.format("Giá trị tối thiểu là {0}."),
+            equalTo: "Giá trị không khớp."
+        });
+
+        document.querySelectorAll('[data-val-required]').forEach(function (el) {
+            var name = el.getAttribute('name');
+            if (!name) return;
+            var group = el.closest('.form-group');
+            if (!group) return;
+            if (group.querySelector('[data-valmsg-for="' + name + '"]')) return;
+            var span = document.createElement('span');
+            span.className = 'text-danger field-validation-valid';
+            span.setAttribute('data-valmsg-for', name);
+            span.setAttribute('data-valmsg-replace', 'true');
+            group.appendChild(span);
+        });
+    })();
+</script>

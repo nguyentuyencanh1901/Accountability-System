@@ -1,0 +1,154 @@
+@model Example.UserService.WebAdmin.Models.ExamSession.ExamSessionFormViewModel
+@using Example.Common.Utilities
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") bài thi</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="ExamSetId"></label>
+                        <select asp-for="ExamSetId" asp-items="Model.ExamSetOptions" class="form-control"></select>
+                        <span asp-validation-for="ExamSetId" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="UserId"></label>
+                        <select asp-for="UserId" asp-items="Model.UserOptions" class="form-control"></select>
+                        <span asp-validation-for="UserId" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="ExamType"></label>
+                        <select asp-for="ExamType" asp-items="Model.ExamTypeOptions" class="form-control"></select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Status"></label>
+                        <select asp-for="Status" asp-items="Model.StatusOptions" class="form-control"></select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="StartedAt"></label>
+                        <div class="input-group">
+                            <input asp-for="StartedAt" class="form-control" type="text"
+                                   value="@VietnamTimeHelper.ToFormInputString(Model.StartedAt)"
+                                   placeholder="@VietnamTimeHelper.FormInputFormat" autocomplete="off"
+                                   id="StartedAtText" />
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="StartedAtPickerBtn" title="Chọn ngày giờ">
+                                    <i class="far fa-calendar-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="datetime-local" class="dt-picker-proxy" id="StartedAtPicker" value="@VietnamTimeHelper.ToDatetimeLocalString(Model.StartedAt)" tabindex="-1" aria-hidden="true" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="FinishedAt"></label>
+                        <div class="input-group">
+                            <input asp-for="FinishedAt" class="form-control" type="text"
+                                   value="@(Model.FinishedAt.HasValue ? VietnamTimeHelper.ToFormInputString(Model.FinishedAt.Value) : "")"
+                                   placeholder="@VietnamTimeHelper.FormInputFormat" autocomplete="off"
+                                   id="FinishedAtText" />
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="FinishedAtPickerBtn" title="Chọn ngày giờ">
+                                    <i class="far fa-calendar-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="datetime-local" class="dt-picker-proxy" id="FinishedAtPicker" value="@(Model.FinishedAt.HasValue ? VietnamTimeHelper.ToDatetimeLocalString(Model.FinishedAt.Value) : "")" tabindex="-1" aria-hidden="true" />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="TotalScore"></label>
+                        <input asp-for="TotalScore" class="form-control" type="number" step="0.01" min="0" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="MaxScore"></label>
+                        <input asp-for="MaxScore" class="form-control" type="number" step="0.01" min="0" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <style>
+        /* Keep in layout for showPicker() positioning, but visually hidden */
+        .dt-picker-proxy {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+    </style>
+    <script>
+        (function () {
+            function pad2(n) { return String(n).padStart(2, '0'); }
+            function toDdMMyyyyHHmm(dt) {
+                return `${pad2(dt.getDate())}/${pad2(dt.getMonth() + 1)}/${dt.getFullYear()} ${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+            }
+            function trySyncPickerFromText(textEl, pickerEl) {
+                if (!textEl || !pickerEl) return;
+                const m = (textEl.value || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+                if (!m) return;
+                const dd = Number(m[1]), mm = Number(m[2]), yyyy = Number(m[3]), HH = Number(m[4]), MM = Number(m[5]);
+                pickerEl.value = `${yyyy}-${pad2(mm)}-${pad2(dd)}T${pad2(HH)}:${pad2(MM)}`;
+            }
+            function wireDateTimePicker(textId, pickerId, btnId) {
+                const textEl = document.getElementById(textId);
+                const pickerEl = document.getElementById(pickerId);
+                const btnEl = document.getElementById(btnId);
+                if (!textEl || !pickerEl || !btnEl) return;
+
+                btnEl.addEventListener('click', function () {
+                    trySyncPickerFromText(textEl, pickerEl);
+                    pickerEl.focus();
+                    if (typeof pickerEl.showPicker === 'function') pickerEl.showPicker();
+                    else pickerEl.click();
+                });
+                pickerEl.addEventListener('change', function () {
+                    if (!pickerEl.value) return;
+                    const dt = new Date(pickerEl.value);
+                    if (Number.isNaN(dt.getTime())) return;
+                    textEl.value = toDdMMyyyyHHmm(dt);
+                });
+                textEl.addEventListener('blur', function () {
+                    trySyncPickerFromText(textEl, pickerEl);
+                });
+            }
+
+            wireDateTimePicker('StartedAtText', 'StartedAtPicker', 'StartedAtPickerBtn');
+            wireDateTimePicker('FinishedAtText', 'FinishedAtPicker', 'FinishedAtPickerBtn');
+        })();
+    </script>
+}

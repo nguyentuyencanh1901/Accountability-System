@@ -1,0 +1,233 @@
+@model Example.UserService.WebApp.Models.ExamSession.ExamSessionDetailsViewModel
+@using Example.UserService.WebApp.Models.ExamSession
+@{
+    var session = Model.Session!;
+    var isCompleted = session.Status == (int)ExamSessionStatusEnum.Completed
+        || session.Status == (int)ExamSessionStatusEnum.Expired
+        || session.Status == (int)ExamSessionStatusEnum.Cancelled;
+    var questions = session.Questions ?? new List<ExamSessionQuestionModel>();
+    var answers = session.Answers ?? new List<ExamSessionAnswerModel>();
+    var correctCount = answers.Count(a => a.IsCorrect);
+    var totalCount = questions.Count;
+    var percent = session.MaxScore > 0
+        ? Math.Round((double)session.TotalScore / (double)session.MaxScore * 100, 1)
+        : 0;
+    var scoreClass = percent >= 80 ? "score-high" : percent >= 50 ? "score-mid" : "score-low";
+    var statusText = session.Status switch
+    {
+        (int)ExamSessionStatusEnum.InProgress => "Đang thi",
+        (int)ExamSessionStatusEnum.Completed => "Hoàn thành",
+        (int)ExamSessionStatusEnum.Expired => "Hết giờ",
+        (int)ExamSessionStatusEnum.Cancelled => "Bị hủy bỏ",
+        _ => "—"
+    };
+    var statusClass = session.Status switch
+    {
+        (int)ExamSessionStatusEnum.InProgress => "badge-exam-trial",
+        (int)ExamSessionStatusEnum.Completed => "badge-exam-real",
+        (int)ExamSessionStatusEnum.Expired => "bg-light text-muted border",
+        (int)ExamSessionStatusEnum.Cancelled => "bg-danger text-white",
+        _ => "bg-light text-muted border"
+    };
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+        @if (session.Status == (int)ExamSessionStatusEnum.InProgress)
+        {
+            <li class="breadcrumb-item"><a asp-action="Index">Bài thi đang làm</a></li>
+            <li class="breadcrumb-item active">Chi tiết</li>
+        }
+        else
+        {
+            <li class="breadcrumb-item"><a asp-action="History">Lịch sử thi</a></li>
+            <li class="breadcrumb-item active">Kết quả</li>
+        }
+    </ol>
+</nav>
+
+<div class="result-hero exam-card mb-4">
+    <div class="card-body p-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <h3 class="mb-0">@session.ExamSetName</h3>
+                    <span class="badge @(session.ExamType == (int)ExamTypeEnum.Trial ? "badge-exam-trial" : "badge-exam-real")">
+                        @(session.ExamType == (int)ExamTypeEnum.Trial ? "Thi thử" : "Thi thật")
+                    </span>
+                    <span class="badge @statusClass">@statusText</span>
+                    @if (session.Status == (int)ExamSessionStatusEnum.Cancelled && session.ViolationCount > 0)
+                    {
+                        <span class="badge bg-danger-subtle text-danger border border-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i>@session.ViolationCount lần vi phạm
+                        </span>
+                    }
+                </div>
+                <div class="result-meta">
+                    <span><i class="far fa-clock me-1"></i>@session.StartedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    @if (session.FinishedAt.HasValue)
+                    {
+                        <span class="meta-sep">→</span>
+                        <span>@session.FinishedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                    }
+                </div>
+                @if (session.Status == (int)ExamSessionStatusEnum.Cancelled && session.ViolationCount > 0)
+                {
+                    <div class="alert alert-danger border-0 mt-3 mb-0 py-2 small">
+                        <i class="fas fa-ban me-1"></i>
+                        Bài thi bị hủy do vi phạm quy chế: chuyển tab hoặc rời màn hình
+                        <strong>@session.ViolationCount</strong> lần.
+                    </div>
+                }
+                @if (!isCompleted && session.Status == (int)ExamSessionStatusEnum.InProgress)
+                {
+                    <a asp-action="Take" asp-route-id="@session.Id" class="btn btn-primary mt-3">
+                        Tiếp tục làm bài
+                    </a>
+                }
+            </div>
+            @if (isCompleted)
+            {
+                <div class="col-lg-5">
+                    <div class="score-panel @scoreClass">
+                        <div class="score-panel-main">
+                            <div class="score-value">@session.TotalScore.ToString("0.##")</div>
+                            <div class="score-divider">/</div>
+                            <div class="score-max">@session.MaxScore.ToString("0.##")</div>
+                        </div>
+                        <div class="score-percent">@percent%</div>
+                        <div class="score-stats">
+                            <span class="stat-correct"><i class="fas fa-check"></i> @correctCount đúng</span>
+                            <span class="stat-wrong"><i class="fas fa-times"></i> @(totalCount - correctCount) sai</span>
+                            <span class="stat-total"><i class="fas fa-list-ol"></i> @totalCount câu</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (questions.Count > 0)
+{
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0">Chi tiết bài làm</h5>
+        @if (isCompleted)
+        {
+            <span class="text-muted small">@correctCount/@totalCount câu đúng</span>
+        }
+    </div>
+
+    @if (isCompleted)
+    {
+        <div class="result-legend mb-3">
+            <span class="legend-item legend-correct-selected"><i class="fas fa-check-circle"></i> Đúng (đã chọn)</span>
+            <span class="legend-item legend-wrong-selected"><i class="fas fa-times-circle"></i> Sai (đã chọn)</span>
+            <span class="legend-item legend-correct-missed"><i class="fas fa-check"></i> Đúng (chưa chọn)</span>
+            <span class="legend-item legend-unselected"><i class="far fa-circle"></i> Chưa chọn</span>
+        </div>
+    }
+
+    @foreach (var q in questions)
+    {
+        var answer = answers.FirstOrDefault(a => a.QuestionId == q.QuestionId);
+        var selectedIds = answer?.SelectedAnswerOptionIds ?? q.SelectedAnswerOptionIds ?? new List<long>();
+        var isCorrect = answer?.IsCorrect == true;
+        var isUnanswered = selectedIds == null || selectedIds.Count == 0;
+        var questionClass = !isCompleted ? "" : isUnanswered ? "result-q-unanswered" : isCorrect ? "result-q-correct" : "result-q-wrong";
+
+        <div class="question-block result-question @questionClass">
+            <div class="result-question-header">
+                <div class="result-question-title">
+                    <span class="result-q-num">@q.SortOrder</span>
+                    <div class="result-question-content">
+                        <span>@q.Content</span>
+                        @{
+                            var questionImage = new QuestionImagePartialModel
+                            {
+                                RelativeImageUrl = q.ImageUrl,
+                                ApiBaseUrl = Model.ApiBaseUrl,
+                                AltText = $"Ảnh câu hỏi {q.SortOrder}",
+                                Variant = "result"
+                            };
+                        }
+                        <partial name="_QuestionImage" model="questionImage" />
+                    </div>
+                </div>
+                @if (isCompleted)
+                {
+                    if (isUnanswered)
+                    {
+                        <div class="result-question-badge badge-unanswered">
+                            <i class="far fa-circle"></i>
+                            Chưa trả lời
+                        </div>
+                    }
+                    else if (answer != null)
+                    {
+                        <div class="result-question-badge @(isCorrect ? "badge-correct" : "badge-wrong")">
+                            <i class="fas @(isCorrect ? "fa-check" : "fa-times")"></i>
+                            @(isCorrect ? $"+{answer.Score.ToString("0.##")}" : "0")
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="result-options">
+                @foreach (var opt in q.AnswerOptions ?? new List<AnswerOptionSaveModel>())
+                {
+                    var isSelected = selectedIds.Contains(opt.Id);
+                    string optionClass;
+                    string iconClass;
+                    string icon;
+
+                    if (!isCompleted)
+                    {
+                        optionClass = isSelected ? "option-selected" : "";
+                        iconClass = "";
+                        icon = "";
+                    }
+                    else if (opt.IsCorrect && isSelected)
+                    {
+                        optionClass = "option-correct-selected";
+                        iconClass = "icon-correct";
+                        icon = "fa-check-circle";
+                    }
+                    else if (opt.IsCorrect)
+                    {
+                        // Đúng nhưng người dùng chưa chọn
+                        optionClass = "option-correct-missed";
+                        iconClass = "icon-missed";
+                        icon = "fa-check";
+                    }
+                    else if (isSelected)
+                    {
+                        optionClass = "option-wrong-selected";
+                        iconClass = "icon-wrong";
+                        icon = "fa-times-circle";
+                    }
+                    else
+                    {
+                        optionClass = "option-unselected";
+                        iconClass = "";
+                        icon = "";
+                    }
+
+                    <div class="result-option @optionClass">
+                        @if (!string.IsNullOrEmpty(icon))
+                        {
+                            <span class="result-option-icon @iconClass"><i class="fas @icon"></i></span>
+                        }
+                        else
+                        {
+                            <span class="result-option-icon icon-empty"></span>
+                        }
+                        <span class="result-option-text">@opt.Content</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+<partial name="_QuestionImageModal" />

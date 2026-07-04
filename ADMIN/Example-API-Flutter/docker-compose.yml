@@ -1,0 +1,28 @@
+﻿version: '3.4'
+
+services:
+  example-platform-user-api:
+    container_name: example-platform-user-api
+    image: docker-registry.example.io/example-platform/example-platform-user-api:1.0.0
+    build:
+      context: .
+      dockerfile: Example.UserService.API/Dockerfile.Production
+    ports:
+      - 9093:9093
+    # expose:
+    #   - 3001
+    hostname: example-platform-user-api
+    restart: always
+    networks:
+      - example
+    # Docker file khi build image đã xóa appsettings.Init.json, cần đưa config appsettings.Init.json ở server vào container
+    volumes:
+      - ../example-config/appsettings.Init.json:/app/appsettings.Init.json
+
+
+# CREATE NETWORK
+networks:
+  example:
+    name: example
+    driver: bridge
+    external: true

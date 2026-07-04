@@ -1,0 +1,75 @@
+@using Example.UserService.WebApp.Const
+@{
+    var fullName = Context.Session.GetString(SessionKeys.FullName) ?? "Thí sinh";
+    var username = Context.Session.GetString(SessionKeys.Username);
+    var activeMenu = ViewData["ActiveMenu"]?.ToString() ?? "";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+<header class="app-header">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark"><i class="fas fa-clipboard-check"></i></span>
+                Hệ thống đánh giá
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appNavbar" aria-label="Menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="appNavbar">
+                @if (isAuthenticated)
+                {
+                    <ul class="navbar-nav me-auto ms-lg-4">
+                        <li class="nav-item">
+                            <a class="nav-link @(activeMenu == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                                Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(activeMenu == "ExamSet" ? "active" : "")" asp-controller="ExamSet" asp-action="Index">
+                                Kỳ thi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(activeMenu == "InProgress" ? "active" : "")" asp-controller="ExamSession" asp-action="Index">
+                                Đang làm
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(activeMenu == "History" ? "active" : "")" asp-controller="ExamSession" asp-action="History">
+                                Lịch sử
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown">
+                                @fullName
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                @if (!string.IsNullOrWhiteSpace(username))
+                                {
+                                    <li><span class="dropdown-item-text text-muted small">@username</span></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                }
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                        <i class="fas fa-user me-2 text-muted"></i>Thông tin cá nhân
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="px-3 py-1">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                            Đăng xuất
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                }
+            </div>
+        </div>
+    </nav>
+</header>

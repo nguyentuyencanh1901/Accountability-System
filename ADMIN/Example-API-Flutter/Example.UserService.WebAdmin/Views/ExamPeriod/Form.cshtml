@@ -1,0 +1,327 @@
+@model Example.UserService.WebAdmin.Models.ExamPeriod.ExamPeriodFormViewModel
+@using Example.Common.Utilities
+@{
+    var startLocal = VietnamTimeHelper.ToFormInputString(Model.StartAt);
+    var endLocal = VietnamTimeHelper.ToFormInputString(Model.EndAt);
+    var minStartLocal = VietnamTimeHelper.ToDatetimeLocalString(VietnamTimeHelper.NowVietnam());
+    var originalStartLocal = Model.OriginalStartAt.HasValue
+        ? VietnamTimeHelper.ToFormInputString(Model.OriginalStartAt.Value)
+        : "";
+}
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") kỳ thi</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post" id="exam-period-form"
+          data-min-start="@minStartLocal" data-original-start="@originalStartLocal">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        @if (Model.IsEdit && Model.OriginalStartAt.HasValue)
+        {
+            <input type="hidden" name="OriginalStartAt" value="@VietnamTimeHelper.ToFormInputString(Model.OriginalStartAt.Value)" />
+        }
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <div class="form-group">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description"></label>
+                <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="StartAt"></label>
+                        <div class="input-group">
+                            <input name="StartAt" type="text" class="form-control" value="@startLocal"
+                                   placeholder="@VietnamTimeHelper.FormInputFormat" autocomplete="off"
+                                   id="StartAtText" />
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="StartAtPickerBtn" title="Chọn ngày giờ">
+                                    <i class="far fa-calendar-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="datetime-local" class="dt-picker-proxy" id="StartAtPicker"
+                               value="@VietnamTimeHelper.ToDatetimeLocalString(Model.StartAt)"
+                               min="@minStartLocal" tabindex="-1" aria-hidden="true" />
+                        <span asp-validation-for="StartAt" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label asp-for="EndAt"></label>
+                        <div class="input-group">
+                            <input name="EndAt" type="text" class="form-control" value="@endLocal"
+                                   placeholder="@VietnamTimeHelper.FormInputFormat" autocomplete="off"
+                                   id="EndAtText" />
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="EndAtPickerBtn" title="Chọn ngày giờ">
+                                    <i class="far fa-calendar-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="datetime-local" class="dt-picker-proxy" id="EndAtPicker" value="@VietnamTimeHelper.ToDatetimeLocalString(Model.EndAt)" tabindex="-1" aria-hidden="true" />
+                        <span asp-validation-for="EndAt" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label asp-for="Status"></label>
+                        <select asp-for="Status" asp-items="Model.StatusOptions" class="form-control"></select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label asp-for="ExamSetTypeFilter"></label>
+                        <select asp-for="ExamSetTypeFilter" asp-items="Model.ExamSetTypeOptions" class="form-control" id="exam-set-type-filter"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="UserIds"></label>
+                        <div class="mb-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="btn-user-select-all">
+                                <i class="fas fa-check-double"></i> Chọn tất cả
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-user-clear-all">
+                                <i class="fas fa-times"></i> Bỏ tất cả
+                            </button>
+                        </div>
+                        <div class="border rounded p-2 bg-white" style="max-height: 260px; overflow: auto;" id="user-list">
+                            @foreach (var opt in Model.UserOptions)
+                            {
+                                <label class="d-flex align-items-center mb-2 user-item" style="cursor:pointer; gap:10px;">
+                                    <input type="checkbox" class="user-checkbox" name="UserIds" value="@opt.Value" @(opt.Selected ? "checked" : "") />
+                                    <span>@opt.Text</span>
+                                </label>
+                            }
+                        </div>
+                        <small class="form-text text-muted">Bấm để chọn nhiều thí sinh (không cần giữ Ctrl).</small>
+                        <span asp-validation-for="UserIds" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="ExamSetIds"></label>
+                        <div class="mb-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="btn-examset-select-all">
+                                <i class="fas fa-check-double"></i> Chọn tất cả
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-examset-clear-all">
+                                <i class="fas fa-times"></i> Bỏ tất cả
+                            </button>
+                        </div>
+                        <div class="border rounded p-2 bg-white" style="max-height: 260px; overflow: auto;" id="exam-set-list">
+                            @foreach (var opt in Model.ExamSetOptions)
+                            {
+                                <label class="d-flex align-items-center mb-2 exam-set-item" style="cursor:pointer; gap:10px;">
+                                    <input type="checkbox" name="ExamSetIds" value="@opt.Id" class="exam-set-checkbox" @(opt.Selected ? "checked" : "") />
+                                    <span>@opt.Name</span>
+                                </label>
+                            }
+                        </div>
+                        <small class="form-text text-muted">Danh sách bộ đề được load theo loại bộ đề đã chọn.</small>
+                        <span asp-validation-for="ExamSetIds" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <style>
+        /* Keep in layout for showPicker() positioning, but visually hidden */
+        .dt-picker-proxy {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+    </style>
+    <script>
+        (function () {
+            const formEl = document.getElementById('exam-period-form');
+            const originalStartText = (formEl?.dataset.originalStart || '').trim();
+
+            function pad2(n) { return String(n).padStart(2, '0'); }
+            function toDdMMyyyyHHmm(dt) {
+                return `${pad2(dt.getDate())}/${pad2(dt.getMonth() + 1)}/${dt.getFullYear()} ${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+            }
+            function nowVietnamDate() {
+                const now = new Date();
+                const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+                return new Date(utcMs + 7 * 3600000);
+            }
+            function toDatetimeLocalValue(dt) {
+                return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}T${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+            }
+            function parseDdMMyyyyHHmm(text) {
+                const m = (text || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+                if (!m) return null;
+                return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4]), Number(m[5]));
+            }
+            function refreshStartMin(pickerEl) {
+                if (!pickerEl) return;
+                pickerEl.min = toDatetimeLocalValue(nowVietnamDate());
+            }
+            function refreshEndMin(startTextEl, endPickerEl) {
+                if (!endPickerEl) return;
+                const startDt = parseDdMMyyyyHHmm(startTextEl?.value);
+                endPickerEl.min = startDt ? toDatetimeLocalValue(startDt) : toDatetimeLocalValue(nowVietnamDate());
+            }
+            function isStartAtAllowed(text) {
+                const value = (text || '').trim();
+                if (!value) return true;
+                if (originalStartText && value === originalStartText) return true;
+                const dt = parseDdMMyyyyHHmm(value);
+                if (!dt) return true;
+                const minDt = nowVietnamDate();
+                minDt.setSeconds(0, 0);
+                return dt >= minDt;
+            }
+            function trySyncPickerFromText(textEl, pickerEl) {
+                if (!textEl || !pickerEl) return;
+                const m = (textEl.value || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+                if (!m) return;
+                const dd = Number(m[1]), mm = Number(m[2]), yyyy = Number(m[3]), HH = Number(m[4]), MM = Number(m[5]);
+                pickerEl.value = `${yyyy}-${pad2(mm)}-${pad2(dd)}T${pad2(HH)}:${pad2(MM)}`;
+            }
+            function wireDateTimePicker(textId, pickerId, btnId, options) {
+                const textEl = document.getElementById(textId);
+                const pickerEl = document.getElementById(pickerId);
+                const btnEl = document.getElementById(btnId);
+                if (!textEl || !pickerEl || !btnEl) return;
+
+                if (options?.enforceMinStart) {
+                    refreshStartMin(pickerEl);
+                }
+                if (options?.syncEndMinFromStart) {
+                    refreshEndMin(document.getElementById('StartAtText'), pickerEl);
+                }
+
+                btnEl.addEventListener('click', function () {
+                    if (options?.enforceMinStart) refreshStartMin(pickerEl);
+                    if (options?.syncEndMinFromStart) refreshEndMin(document.getElementById('StartAtText'), pickerEl);
+                    trySyncPickerFromText(textEl, pickerEl);
+                    pickerEl.focus();
+                    if (typeof pickerEl.showPicker === 'function') pickerEl.showPicker();
+                    else pickerEl.click();
+                });
+                pickerEl.addEventListener('change', function () {
+                    if (!pickerEl.value) return;
+                    const dt = new Date(pickerEl.value);
+                    if (Number.isNaN(dt.getTime())) return;
+                    const formatted = toDdMMyyyyHHmm(dt);
+                    if (options?.enforceMinStart && !isStartAtAllowed(formatted)) {
+                        alert('Thời gian bắt đầu phải từ hiện tại trở đi.');
+                        refreshStartMin(pickerEl);
+                        pickerEl.value = pickerEl.min;
+                        textEl.value = toDdMMyyyyHHmm(new Date(pickerEl.value));
+                        return;
+                    }
+                    textEl.value = formatted;
+                    if (options?.onChange) options.onChange(formatted);
+                });
+                textEl.addEventListener('blur', function () {
+                    if (options?.enforceMinStart && !isStartAtAllowed(textEl.value)) {
+                        alert('Thời gian bắt đầu phải từ hiện tại trở đi.');
+                        textEl.value = originalStartText || toDdMMyyyyHHmm(nowVietnamDate());
+                    }
+                    trySyncPickerFromText(textEl, pickerEl);
+                    if (options?.onChange) options.onChange(textEl.value);
+                });
+            }
+
+            const typeFilter = document.getElementById('exam-set-type-filter');
+            const listEl = document.getElementById('exam-set-list');
+            const userListEl = document.getElementById('user-list');
+
+            function setAllChecked(selector, checked) {
+                document.querySelectorAll(selector).forEach(function (cb) { cb.checked = checked; });
+            }
+
+            document.getElementById('btn-user-select-all')?.addEventListener('click', function () {
+                setAllChecked('.user-checkbox', true);
+            });
+            document.getElementById('btn-user-clear-all')?.addEventListener('click', function () {
+                setAllChecked('.user-checkbox', false);
+            });
+
+            document.getElementById('btn-examset-select-all')?.addEventListener('click', function () {
+                setAllChecked('.exam-set-checkbox', true);
+            });
+            document.getElementById('btn-examset-clear-all')?.addEventListener('click', function () {
+                setAllChecked('.exam-set-checkbox', false);
+            });
+
+            async function reloadExamSetsByType(type, preserveSelection) {
+                if (!listEl) return;
+                const selected = preserveSelection
+                    ? Array.from(document.querySelectorAll('.exam-set-checkbox:checked')).map(cb => cb.value)
+                    : [];
+                const params = new URLSearchParams({ type: String(type) });
+                selected.forEach(function (id) { params.append('selectedIds', id); });
+
+                const res = await fetch(`@Url.Action("GetExamSetsByType", "ExamPeriod")?${params.toString()}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) return;
+
+                const data = await res.json();
+                listEl.innerHTML = '';
+                data.forEach(function (item) {
+                    const label = document.createElement('label');
+                    label.className = 'd-flex align-items-center mb-2 exam-set-item';
+                    label.style.gap = '10px';
+                    label.style.cursor = 'pointer';
+                    const checked = item.selected ? ' checked' : '';
+                    label.innerHTML = `
+                        <input type="checkbox" name="ExamSetIds" value="${item.id}" class="exam-set-checkbox"${checked} />
+                        <span>${item.name}</span>
+                    `;
+                    listEl.appendChild(label);
+                });
+            }
+
+            if (typeFilter) {
+                typeFilter.addEventListener('change', function () {
+                    reloadExamSetsByType(this.value, false);
+                });
+            }
+
+            wireDateTimePicker('StartAtText', 'StartAtPicker', 'StartAtPickerBtn', {
+                enforceMinStart: true,
+                onChange: function () {
+                    refreshEndMin(document.getElementById('StartAtText'), document.getElementById('EndAtPicker'));
+                }
+            });
+            wireDateTimePicker('EndAtText', 'EndAtPicker', 'EndAtPickerBtn', {
+                syncEndMinFromStart: true
+            });
+
+            formEl?.addEventListener('submit', function (e) {
+                const startText = document.getElementById('StartAtText');
+                if (startText && !isStartAtAllowed(startText.value)) {
+                    e.preventDefault();
+                    alert('Thời gian bắt đầu phải từ hiện tại trở đi.');
+                    startText.focus();
+                }
+            });
+        })();
+    </script>
+}

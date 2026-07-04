@@ -1,0 +1,11 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+    Layout = "_AdminLayout";
+    ViewData["PageTitle"] = "Không có quyền truy cập";
+}
+
+<div class="alert alert-warning">
+    <h5><i class="icon fas fa-exclamation-triangle"></i> Bạn không có quyền truy cập chức năng này.</h5>
+    <p class="mb-0">Tài khoản của bạn chưa được cấp quyền thực hiện thao tác này.</p>
+</div>
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Về bảng điều khiển</a>

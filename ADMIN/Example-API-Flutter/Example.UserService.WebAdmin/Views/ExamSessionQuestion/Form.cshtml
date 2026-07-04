@@ -1,0 +1,41 @@
+@model Example.UserService.WebAdmin.Models.ExamSessionQuestion.ExamSessionQuestionFormViewModel
+<div class="card card-primary">
+    <div class="card-header"><h3 class="card-title">@(Model.IsEdit ? "Sửa" : "Thêm") câu hỏi bài thi</h3></div>
+    <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage)) { <div class="alert alert-danger">@Model.ErrorMessage</div> }
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+            <div class="form-group">
+                <label asp-for="ExamSessionId"></label>
+                <select asp-for="ExamSessionId" asp-items="Model.ExamSessionOptions" class="form-control"></select>
+                <span asp-validation-for="ExamSessionId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="QuestionId"></label>
+                <select asp-for="QuestionId" asp-items="Model.QuestionOptions" class="form-control"></select>
+                <span asp-validation-for="QuestionId" class="text-danger"></span>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Points"></label>
+                        <input asp-for="Points" class="form-control" type="number" min="0" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="SortOrder"></label>
+                        <input asp-for="SortOrder" class="form-control" type="number" min="0" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

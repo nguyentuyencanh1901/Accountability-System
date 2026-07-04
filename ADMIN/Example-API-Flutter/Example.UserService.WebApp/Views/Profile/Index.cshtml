@@ -1,0 +1,38 @@
+@model Example.UserService.WebApp.Models.Profile.ProfileViewModel
+@using Example.Common.Enums
+
+<h4 class="section-title">Thông tin cá nhân</h4>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+else if (Model.User != null)
+{
+    var user = Model.User;
+    <div class="card exam-card">
+        <div class="card-body p-4">
+            <dl class="row mb-4">
+                <dt class="col-sm-3">Tên đăng nhập</dt>
+                <dd class="col-sm-9">@user.Username</dd>
+
+                <dt class="col-sm-3">Họ và tên</dt>
+                <dd class="col-sm-9">@user.FullName</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@user.Email</dd>
+
+                <dt class="col-sm-3">Số điện thoại</dt>
+                <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(user.Phone) ? "-" : user.Phone)</dd>
+
+                <dt class="col-sm-3">Loại tài khoản</dt>
+                <dd class="col-sm-9">@(user.UserType == (int)UserTypeEnum.TestTaker ? "Thí sinh" : "Quản lý")</dd>
+            </dl>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-action="Edit" class="btn btn-primary">Sửa thông tin</a>
+                <a asp-action="ChangePassword" class="btn btn-outline-primary">Đổi mật khẩu</a>
+            </div>
+        </div>
+    </div>
+}

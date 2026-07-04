@@ -1,0 +1,39 @@
+<div class="modal fade question-image-modal" id="questionImageModal" tabindex="-1" aria-labelledby="questionImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-muted small" id="questionImageModalLabel">Ảnh minh họa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="question-image-toolbar" role="toolbar" aria-label="Điều khiển xem ảnh">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="questionImageZoomOut" title="Thu nhỏ">
+                    <i class="fas fa-search-minus"></i>
+                    <span class="d-none d-sm-inline ms-1">Thu nhỏ</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="questionImageZoomIn" title="Phóng to">
+                    <i class="fas fa-search-plus"></i>
+                    <span class="d-none d-sm-inline ms-1">Phóng to</span>
+                </button>
+                <span class="question-image-zoom-label" id="questionImageZoomLabel">100%</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="questionImagePanLeft" title="Kéo sang trái">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="questionImagePanRight" title="Kéo sang phải">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="questionImageReset" title="Đặt lại">
+                    <i class="fas fa-compress"></i>
+                    <span class="d-none d-sm-inline ms-1">Vừa khung</span>
+                </button>
+            </div>
+            <div class="modal-body pt-2 pb-4 px-3">
+                <div class="question-image-viewport" id="questionImageViewport">
+                    <img src="" alt="" class="question-image-modal-img" id="questionImageModalImg" draggable="false" />
+                </div>
+                <p class="question-image-hint text-muted small text-center mb-0 mt-2">
+                    Kéo ảnh bằng chuột hoặc dùng nút mũi tên để xem chi tiết khi đã phóng to.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
