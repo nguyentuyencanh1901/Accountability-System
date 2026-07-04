@@ -47,4 +47,4 @@ docker-compose -f docker-compose-customer.yml up -d
 
 # Port API, Kafka Consumer & Background Service phục vụ health check Container
 Qaidora.Mask.UserService.API: 9093
-Qaidora.Mask.Box.API: 7002
+Qaidora.Mask.Box.API: 7002 
