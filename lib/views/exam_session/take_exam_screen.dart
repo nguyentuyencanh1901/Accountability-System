@@ -13,6 +13,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/exam/exam_session_question.dart';
 import '../../core/utils/nav_index_helper.dart';
 import '../../widgets/common/main_bottom_nav.dart';
+import '../../widgets/common/app_global_actions.dart';
 import '../../widgets/common/question_image_view.dart';
 
 /// Màn làm bài thi — layout gọn, ưu tiên hiển thị đủ câu hỏi và đáp án.
@@ -266,12 +267,16 @@ class _TakeExamScreenState extends State<TakeExamScreen>
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final takeCtrl = context.watch<TakeExamController>();
     final sessionCtrl = context.watch<ExamSessionController>();
 
     if (!_initialized || takeCtrl.data == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Làm bài thi')),
+        appBar: AppBar(
+          title: Text(s.takeExam),
+          actions: AppGlobalActions.buttons(context),
+        ),
         body: sessionCtrl.isLoading
             ? const Center(child: CircularProgressIndicator())
             : Center(child: Text(sessionCtrl.errorMessage ?? 'Đang tải...')),
@@ -290,7 +295,6 @@ class _TakeExamScreenState extends State<TakeExamScreen>
     final isUrgent = _remaining.inMinutes < 5;
     final isMultiple = QuestionType.isMultiple(current.questionType);
     final typeColor = isMultiple ? AppColors.primaryLight : AppColors.teal;
-    final s = S.of(context);
 
     if (_lastNavIndex != takeCtrl.currentQuestionIndex) {
       _lastNavIndex = takeCtrl.currentQuestionIndex;
@@ -358,6 +362,7 @@ class _TakeExamScreenState extends State<TakeExamScreen>
               textColor: Colors.white,
             ),
           ),
+          ...AppGlobalActions.buttons(context),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(3),

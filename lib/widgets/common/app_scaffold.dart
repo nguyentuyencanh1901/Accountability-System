@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/nav_index_helper.dart';
 import 'main_bottom_nav.dart';
+import 'app_global_actions.dart';
 
 /// Layout chính sau đăng nhập — tương đương `_AppLayout.cshtml`.
 class AppScaffold extends StatelessWidget {
@@ -19,6 +19,7 @@ class AppScaffold extends StatelessWidget {
     this.bottomNavigationBar,
     this.navIndex,
     this.showBottomNav = true,
+    this.showGlobalActions = true,
   });
 
   final String title;
@@ -28,6 +29,7 @@ class AppScaffold extends StatelessWidget {
   final Widget? bottomNavigationBar;
   final int? navIndex;
   final bool showBottomNav;
+  final bool showGlobalActions;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +67,10 @@ class AppScaffold extends StatelessWidget {
             ),
           ],
         ),
-        actions: actions,
+        actions: [
+          ...?actions,
+          if (showGlobalActions) ...AppGlobalActions.buttons(context),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(2),
           child: Container(height: 2, color: AppColors.accentBlue),

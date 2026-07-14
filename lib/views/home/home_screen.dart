@@ -13,7 +13,6 @@ import '../../l10n/app_strings.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/common/app_scaffold.dart';
 import '../../widgets/common/dashboard_widgets.dart';
-import '../../widgets/common/locale_toggle.dart';
 import '../../widgets/common/message_banner.dart';
 import '../../widgets/common/stat_card.dart';
 
@@ -41,33 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
   }
 
-  Future<void> _confirmLogout() async {
-    final s = S.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(s.logoutConfirmTitle),
-        content: Text(s.logoutConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(s.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(s.logout),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    final auth = context.read<AuthController>();
-    await auth.logout();
-    if (mounted) context.go(AppRoutes.login);
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -80,15 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return AppScaffold(
       title: s.homeTitle,
-      actions: [
-        const LocaleToggleButton(),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          icon: const Icon(Icons.logout, size: 20),
-          tooltip: s.logout,
-          onPressed: _confirmLogout,
-        ),
-      ],
       body: Stack(
         children: [
           RefreshIndicator(
