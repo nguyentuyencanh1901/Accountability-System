@@ -1,6 +1,7 @@
 using Example.Common.Enums;
 using Example.Common.Models;
 using Example.UserService.API.Models;
+using Example.UserService.WebAdmin.Const;
 using Example.UserService.WebAdmin.Helpers;
 using Example.UserService.WebAdmin.Models.AppUser;
 using Example.UserService.WebAdmin.Repository.IRepository;
@@ -72,8 +73,11 @@ namespace Example.UserService.WebAdmin.Services
         }
 
         /// <summary>Map ViewModel → SaveModel (isEdit=false) và gọi API thêm.</summary>
-        public Task<ResponseData<object>> InsertAsync(AppUserFormViewModel model)
-            => _repository.AddAsync(ToSaveModel(model, isEdit: false));
+        public async Task<ResponseData<object>> InsertAsync(AppUserFormViewModel model)
+        {
+            await SanitizeAssignableRolesAsync(model);
+            return await _repository.AddAsync(ToSaveModel(model, isEdit: false));
+        }
 
         /// <summary>Map ViewModel → SaveModel (isEdit=true) và gọi API cập nhật.</summary>
         public async Task<ResponseData<object>> UpdateAsync(AppUserFormViewModel model)
@@ -92,6 +96,7 @@ namespace Example.UserService.WebAdmin.Services
                 return await _repository.UpdateAsync(saveModel);
             }
 
+            await SanitizeAssignableRolesAsync(model);
             return await _repository.UpdateAsync(ToSaveModel(model, isEdit: true));
         }
 
@@ -166,9 +171,32 @@ namespace Example.UserService.WebAdmin.Services
 
             var rolesResult = await _roleRepository.GetListAsync(new RoleSearchModel { PageIndex = 1, PageSize = 100 });
             model.RoleOptions = rolesResult.Success && rolesResult.Data != null
-                ? rolesResult.Data.Select(r => new SelectListItem(
-                    r.Name, r.Id.ToString(), model.Roles.Contains(r.Id))).ToList()
+                ? rolesResult.Data
+                    .Where(r => !AuthConstants.IsSuperAdminRoleName(r.Name))
+                    .Select(r => new SelectListItem(
+                        r.Name, r.Id.ToString(), model.Roles.Contains(r.Id))).ToList()
                 : new List<SelectListItem>();
+        }
+
+        /// <summary>Loại vai trò SuperAdmin — chỉ tồn tại 1 tài khoản seed sẵn.</summary>
+        private async Task SanitizeAssignableRolesAsync(AppUserFormViewModel model)
+        {
+            if (model.UserType != (int)UserTypeEnum.Manager)
+            {
+                model.Roles = new List<long>();
+                return;
+            }
+
+            var rolesResult = await _roleRepository.GetListAsync(new RoleSearchModel { PageIndex = 1, PageSize = 100 });
+            if (!rolesResult.Success || rolesResult.Data == null)
+                return;
+
+            var blockedRoleIds = rolesResult.Data
+                .Where(r => AuthConstants.IsSuperAdminRoleName(r.Name))
+                .Select(r => r.Id)
+                .ToHashSet();
+
+            model.Roles = model.Roles.Where(id => !blockedRoleIds.Contains(id)).ToList();
         }
 
         /// <summary>

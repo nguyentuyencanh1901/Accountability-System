@@ -61,36 +61,17 @@ namespace Example.UserService.WebAdmin.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Register()
+        public IActionResult Register()
         {
-            if (User.Identity?.IsAuthenticated == true)
-                return RedirectToAction("Index", "Home");
-
-            return View(await _service.BuildRegisterViewModelAsync(new RegisterViewModel()));
+            // Tài khoản quản trị chỉ được Super Admin tạo trong mục Người dùng.
+            return RedirectToAction(nameof(Login));
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        public IActionResult Register(RegisterViewModel model)
         {
-            await _service.ApplyRegisterDefaultsAsync(model);
-
-            foreach (var (key, message) in _service.ValidateRegister(model))
-                ModelState.AddModelError(key, message);
-
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var (success, errorMessage) = await _service.RegisterAsync(model);
-            if (!success)
-            {
-                model.ErrorMessage = errorMessage;
-                return View(model);
-            }
-
-            TempData["SuccessMessage"] = "Đăng ký tài khoản quản lý thành công. Vui lòng đăng nhập.";
-
             return RedirectToAction(nameof(Login));
         }
 

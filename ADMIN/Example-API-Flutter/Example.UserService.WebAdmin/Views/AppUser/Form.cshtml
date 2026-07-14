@@ -98,8 +98,16 @@
                     <div class="col-md-12" id="rolesGroup">
                         <div class="form-group">
                             <label asp-for="Roles"></label>
-                            <select asp-for="Roles" asp-items="Model.RoleOptions" class="form-control" multiple size="4"></select>
-                            <small class="text-muted">Chỉ áp dụng cho người quản lý.</small>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="rolesSelectAll">
+                                    Chọn tất cả
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="rolesClearAll">
+                                    Bỏ chọn tất cả
+                                </button>
+                            </div>
+                            <select asp-for="Roles" asp-items="Model.RoleOptions" class="form-control" id="rolesSelect" multiple size="3"></select>
+                            <small class="text-muted">Chỉ áp dụng cho người quản lý. Vai trò SuperAdmin do hệ thống tạo sẵn, không gán tại đây.</small>
                         </div>
                     </div>
                 }
@@ -126,9 +134,25 @@
             (function () {
                 var userType = document.getElementById('userType');
                 var rolesGroup = document.getElementById('rolesGroup');
+                var rolesSelect = document.getElementById('rolesSelect');
+                var selectAllBtn = document.getElementById('rolesSelectAll');
+                var clearAllBtn = document.getElementById('rolesClearAll');
                 var manager = '@((int)UserTypeEnum.Manager)';
-                function toggle() { rolesGroup.style.display = userType.value === manager ? 'block' : 'none'; }
+
+                function setAllRoles(selected) {
+                    if (!rolesSelect) return;
+                    Array.prototype.forEach.call(rolesSelect.options, function (option) {
+                        option.selected = selected;
+                    });
+                }
+
+                function toggle() {
+                    rolesGroup.style.display = userType.value === manager ? 'block' : 'none';
+                }
+
                 userType.addEventListener('change', toggle);
+                selectAllBtn.addEventListener('click', function () { setAllRoles(true); });
+                clearAllBtn.addEventListener('click', function () { setAllRoles(false); });
                 toggle();
             })();
         </script>
