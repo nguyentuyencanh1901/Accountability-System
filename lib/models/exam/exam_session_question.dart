@@ -39,7 +39,7 @@ class ExamSessionQuestion {
       sortOrder: json['sortOrder'] as int? ?? 0,
       content: json['content'] as String? ?? '',
       questionType: json['questionType'] as int? ?? 1,
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: json['imageUrl'] as String? ?? json['ImageUrl'] as String?,
       answerOptions: (json['answerOptions'] as List<dynamic>?)
               ?.map((e) => AnswerOption.fromJson(e as Map<String, dynamic>))
               .toList() ??

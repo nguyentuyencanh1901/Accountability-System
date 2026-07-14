@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/config/api_config.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/entity_image_helper.dart';
+import 'question_image_viewer.dart';
 
 /// Ảnh câu hỏi — có ảnh thì hiển thị; không có hoặc lỗi tải thì placeholder + icon.
 class QuestionImageView extends StatelessWidget {
@@ -10,18 +11,28 @@ class QuestionImageView extends StatelessWidget {
     required this.imageUrl,
     this.height = 120,
     this.emptyLabel = 'Không có ảnh câu hỏi',
+    this.viewerTitle,
   });
 
   final String? imageUrl;
   final double height;
   final String emptyLabel;
+  final String? viewerTitle;
 
   bool get _hasImage => imageUrl != null && imageUrl!.trim().isNotEmpty;
 
-  String get _resolvedUrl {
+  String? get _resolvedUrl {
     final url = imageUrl!.trim();
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return '${ApiConfig.baseUrl}$url';
+    return EntityImageHelper.buildPublicUrl(url);
+  }
+
+  void _openViewer(BuildContext context, String src) {
+    QuestionImageViewer.show(
+      context,
+      imageUrl: src,
+      title: viewerTitle ?? 'Ảnh câu hỏi',
+    );
   }
 
   @override
@@ -30,28 +41,67 @@ class QuestionImageView extends StatelessWidget {
       return _QuestionImagePlaceholder(height: height, label: emptyLabel);
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        _resolvedUrl,
-        height: height,
-        width: double.infinity,
-        fit: BoxFit.contain,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return SizedBox(
-            height: height,
-            child: const Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
+    final src = _resolvedUrl;
+    if (src == null) {
+      return _QuestionImagePlaceholder(height: height, label: emptyLabel);
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openViewer(context, src),
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                src,
+                height: height,
+                width: double.infinity,
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return SizedBox(
+                    height: height,
+                    child: const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (_, __, ___) =>
+                    _QuestionImagePlaceholder(height: height, label: emptyLabel),
               ),
             ),
-          );
-        },
-        errorBuilder: (_, __, ___) =>
-            _QuestionImagePlaceholder(height: height, label: emptyLabel),
+            Positioned(
+              right: 8,
+              bottom: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.zoom_in, size: 14, color: Colors.white),
+                    SizedBox(width: 4),
+                    Text(
+                      'Xem ảnh',
+                      style: TextStyle(color: Colors.white, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

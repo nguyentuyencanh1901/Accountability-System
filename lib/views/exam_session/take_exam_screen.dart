@@ -389,6 +389,7 @@ class _TakeExamScreenState extends State<TakeExamScreen>
                         child: QuestionImageView(
                           imageUrl: current.imageUrl,
                           height: 80,
+                          viewerTitle: 'Ảnh câu hỏi ${current.sortOrder}',
                         ),
                       ),
                       ...current.answerOptions.map((opt) {

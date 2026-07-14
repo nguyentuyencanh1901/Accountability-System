@@ -181,7 +181,10 @@ class _QuestionReviewCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(question.content),
             const SizedBox(height: 8),
-            QuestionImageView(imageUrl: question.imageUrl),
+            QuestionImageView(
+              imageUrl: question.imageUrl,
+              viewerTitle: 'Ảnh câu hỏi ${question.sortOrder}',
+            ),
             const SizedBox(height: 10),
             ...question.answerOptions.map((opt) {
               final selected = selectedIds.contains(opt.id);
