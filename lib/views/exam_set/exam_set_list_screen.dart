@@ -95,6 +95,8 @@ class _AssignedExamCard extends StatelessWidget {
     final dateFormat = (DateTime value) =>
         VietnamTimeHelper.formatInstant(value);
 
+    final actionLabel = _actionLabel(a);
+
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -144,7 +146,7 @@ class _AssignedExamCard extends StatelessWidget {
             style: const TextStyle(fontSize: 11),
           ),
         ],
-        if (!_isCompleted) ...[
+        if (actionLabel != null) ...[
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
@@ -155,7 +157,7 @@ class _AssignedExamCard extends StatelessWidget {
                 side: const BorderSide(color: AppColors.primaryLight),
                 padding: const EdgeInsets.symmetric(vertical: 8),
               ),
-              child: Text(_actionLabel(a)),
+              child: Text(actionLabel),
             ),
           ),
         ],
@@ -164,17 +166,18 @@ class _AssignedExamCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: _isCompleted
-          ? Padding(padding: const EdgeInsets.all(12), child: content)
-          : InkWell(
+      child: actionLabel != null
+          ? InkWell(
               onTap: () => _openDetail(context),
               borderRadius: BorderRadius.circular(10),
               child: Padding(padding: const EdgeInsets.all(12), child: content),
-            ),
+            )
+          : Padding(padding: const EdgeInsets.all(12), child: content),
     );
   }
 
-  String _actionLabel(ExamPeriodAssignment a) {
+  String? _actionLabel(ExamPeriodAssignment a) {
+    if (_isCompleted) return null;
     if (a.status == ExamPeriodAssignmentStatus.inProgress &&
         ExamPeriodTimeHelper.canContinueExam(a)) {
       return s.continueExam;
@@ -182,7 +185,7 @@ class _AssignedExamCard extends StatelessWidget {
     if (ExamPeriodTimeHelper.canStartExam(a)) {
       return s.startExam;
     }
-    return s.viewDetails;
+    return null;
   }
 }
 

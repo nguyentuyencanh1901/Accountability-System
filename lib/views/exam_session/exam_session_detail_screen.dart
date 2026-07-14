@@ -3,13 +3,13 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/exam_session_controller.dart';
-import '../../core/config/api_config.dart';
 import '../../core/enums/app_enums.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/display_helper.dart';
 import '../../models/exam/exam_session_question.dart';
 import '../../widgets/common/app_scaffold.dart';
 import '../../widgets/common/message_banner.dart';
+import '../../widgets/common/question_image_view.dart';
 import '../../widgets/common/stat_card.dart';
 
 /// Chi tiết kết quả thi — tương đương `Views/ExamSession/Details.cshtml`.
@@ -180,15 +180,8 @@ class _QuestionReviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(question.content),
-            if (question.imageUrl != null && question.imageUrl!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Image.network(
-                '${ApiConfig.baseUrl}${question.imageUrl}',
-                height: 120,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-            ],
+            const SizedBox(height: 8),
+            QuestionImageView(imageUrl: question.imageUrl),
             const SizedBox(height: 10),
             ...question.answerOptions.map((opt) {
               final selected = selectedIds.contains(opt.id);
