@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/exam_session_controller.dart';
-import '../../core/config/api_config.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/enums/app_enums.dart';
 import '../../l10n/app_strings.dart';
@@ -14,6 +13,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/exam/exam_session_question.dart';
 import '../../core/utils/nav_index_helper.dart';
 import '../../widgets/common/main_bottom_nav.dart';
+import '../../widgets/common/question_image_view.dart';
 
 /// Màn làm bài thi — layout gọn, ưu tiên hiển thị đủ câu hỏi và đáp án.
 class TakeExamScreen extends StatefulWidget {
@@ -384,22 +384,13 @@ class _TakeExamScreenState extends State<TakeExamScreen>
                         isMultiple: isMultiple,
                         typeColor: typeColor,
                       ),
-                      if (current.imageUrl != null &&
-                          current.imageUrl!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: Image.network(
-                              '${ApiConfig.baseUrl}${current.imageUrl}',
-                              height: 80,
-                              width: double.infinity,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) =>
-                                  const SizedBox.shrink(),
-                            ),
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: QuestionImageView(
+                          imageUrl: current.imageUrl,
+                          height: 80,
                         ),
+                      ),
                       ...current.answerOptions.map((opt) {
                         final selected =
                             (takeCtrl.answers[current.questionId] ?? [])
