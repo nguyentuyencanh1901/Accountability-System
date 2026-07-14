@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Example.UserService.API.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class initdb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,7 +28,6 @@ namespace Example.UserService.API.Migrations
                     StartAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     EndAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    AllowTrial = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     LastModifiedDate = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(150)", nullable: true)
@@ -264,8 +263,9 @@ namespace Example.UserService.API.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     FieldId = table.Column<long>(type: "bigint", nullable: false),
-                    ExamSetId = table.Column<long>(type: "bigint", nullable: false),
                     Content = table.Column<string>(type: "varchar(2000)", maxLength: 2000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ImageUrl = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Points = table.Column<int>(type: "int", nullable: false),
                     QuestionType = table.Column<int>(type: "int", nullable: false),
@@ -281,12 +281,6 @@ namespace Example.UserService.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Questions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Questions_ExamSets_ExamSetId",
-                        column: x => x.ExamSetId,
-                        principalTable: "ExamSets",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Questions_Fields_FieldId",
                         column: x => x.FieldId,
@@ -417,6 +411,7 @@ namespace Example.UserService.API.Migrations
                     TotalScore = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
                     MaxScore = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    ViolationCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     CreatedDate = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     LastModifiedDate = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(150)", nullable: true)
@@ -643,11 +638,6 @@ namespace Example.UserService.API.Migrations
                 name: "IX_ExamSetFields_FieldId",
                 table: "ExamSetFields",
                 column: "FieldId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Questions_ExamSetId",
-                table: "Questions",
-                column: "ExamSetId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Questions_FieldId",

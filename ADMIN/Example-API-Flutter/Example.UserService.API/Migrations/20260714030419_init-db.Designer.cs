@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Example.UserService.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260625070644_dropExemSetId")]
-    partial class dropExemSetId
+    [Migration("20260714030419_init-db")]
+    partial class initdb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -140,9 +140,6 @@ namespace Example.UserService.API.Migrations
                         .HasColumnType("bigint");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("AllowTrial")
-                        .HasColumnType("int");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("varchar(150)");
@@ -320,6 +317,11 @@ namespace Example.UserService.API.Migrations
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("ViolationCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -642,6 +644,10 @@ namespace Example.UserService.API.Migrations
 
                     b.Property<long>("FieldId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("LastModifiedBy")
                         .HasMaxLength(150)
